@@ -15,9 +15,11 @@ import tensorflow as tf
 from tensorflow import keras as ks
 from matplotlib import pyplot as plt
 from constants import *
+from cnn_path import CNN_PATH
 
 from random import randint
 from PIL import Image, ImageFont, ImageDraw
+
 
 
 class ClueGuesser:
@@ -35,7 +37,7 @@ class ClueGuesser:
         
         
         try:
-            self.conv_model = ks.models.load_model(CNNConstants.CNN_MODEL_PATH)
+            self.conv_model = ks.models.load_model(CNN_PATH.CNN_MODEL_PATH)
             print("Model Loaded Successfully")
         except Exception as e:
             print("Error loading model")

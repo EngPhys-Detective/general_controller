@@ -104,7 +104,7 @@ class CNNConstants:
     
     CHARACTERS_COUNT = len(CHARACTERS)
         
-    CNN_MODEL_PATH = "/home/fizzer/enph_ws/src/competition_machine/cnn_models/my_model.h5"
+    
 
 class ClueLocations:
 
