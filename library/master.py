@@ -34,7 +34,6 @@ class Master:
         rospy.init_node('master')
         self.paved_driver = PavedDriver()
         self.dirt_driver = DirtDriver()
-        self.score_keeper = ScoreKeeper()
         self.image_processor = ImageProcessor()
         self.clue_guesser = ClueGuesser()
 
@@ -44,6 +43,8 @@ class Master:
 
         self.onDirt = False
         self.pink_count = 0
+        
+        self.score_keeper = ScoreKeeper()
 
     def poll(self, data):
         try:

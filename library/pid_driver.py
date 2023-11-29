@@ -43,6 +43,16 @@ class PavedDriver():
         error = self.get_error(ImageProcessor.find_road_paved(self, camera_image))
         self.move(error)
 
+    def stop(self):
+        self.velocity_pub.publish(self.stop_twist)
+    
+    def forward_step(self):
+        self.twist.linear.x = 0.15
+        self.twist.angular.z = 0
+        self.velocity_pub.publish(self.twist)
+        rospy.sleep(0.25)
+        self.stop()
+
 class DirtDriver():
 
     kp_x = 0.0095
