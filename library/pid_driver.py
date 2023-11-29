@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from typing import Any
 import rospy
 import cv2
 import time
@@ -14,8 +15,8 @@ from constants import ImageConstants, ClueConstants, CNNConstants, ClueLocations
 
 class PavedDriver():
 
-    kp_x = 0.025
-    kp_y = 0.005
+    kp_x = 0.025/2.5
+    kp_y = 0.005/2.5
 
     stop_twist = Twist()
     stop_twist.linear.x = 0
@@ -26,13 +27,16 @@ class PavedDriver():
         self.twist = Twist()
 
     def get_error(self, road_mid_point):
-        x_error = road_mid_point[0] - 128
-        y_error = 120 - road_mid_point[1]
+        x_error = road_mid_point[0] - 320
+        y_error = 280 - road_mid_point[1]
         return [x_error, y_error]
     
     def move(self, error):
         self.twist.angular.z = self.kp_x * error[0]
-        self.twist.linear.x = 0.25 + self.kp_y * error[1]
+        if abs(error[1]) and abs(error[0]) < 20:
+            self.twist.linear.x = 0.85
+        else:
+            self.twist.linear.x = 0.25 + self.kp_y * error[1]
         self.velocity_pub.publish(self.twist)
 
     def drive(self, camera_image):
@@ -61,6 +65,16 @@ class DirtDriver():
         self.twist.angular.z = self.kp_x * error[0]
         self.twist.linear.x = 0.15 
         self.velocity_pub.publish(self.twist)
+
+    def stop(self):
+        self.velocity_pub.publish(self.stop_twist)
+    
+    def forward_step(self):
+        self.twist.linear.x = 0.15
+        self.twist.angular.z = 0
+        self.velocity_pub.publish(self.twist)
+        rospy.sleep(0.25)
+        self.stop()
 
     def drive(self, camera_image):
         error = self.get_error(ImageProcessor.find_road_dirt(self, camera_image))

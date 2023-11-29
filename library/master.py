@@ -34,9 +34,11 @@ class Master:
         rospy.init_node('master')
         self.paved_driver = PavedDriver()
         self.dirt_driver = DirtDriver()
+        self.score_keeper = ScoreKeeper()
         self.image_processor = ImageProcessor()
         self.clue_guesser = ClueGuesser()
-        self.score_keeper = ScoreKeeper()
+
+        self.driver = self.paved_driver
 
         self.image_sub = rospy.Subscriber('/R1/pi_camera/image_raw', Image, self.poll)
 
@@ -58,17 +60,19 @@ class Master:
             print("pink line detected")
 
         if (self.onDirt):
-            self.dirt_driver.drive(camera_image)
-        else:
-            self.paved_driver.drive(camera_image)
+            self.driver = self.dirt_driver
+
+        self.driver.drive(camera_image)
         
         clue_finder = ClueFinder(camera_image)
         
         banner_image = clue_finder.get_banner_image()
         if (banner_image is not None): 
+            self.driver.stop()
             clue = self.clue_guesser.guess_image(banner_image)
             print(clue)
-            # self.score_keeper.publish_clue(clue)
+            self.score_keeper.publish_clue(clue)
+            
             # cv2.imwrite("/home/fizzer/enph353_ws/src/my_controller/media/testing_clue_banners/test_img" + str(self.counter) + ".png", banner_image)
             # self.counter += 1
 

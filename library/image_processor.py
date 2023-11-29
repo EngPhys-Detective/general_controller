@@ -14,9 +14,9 @@ class ImageProcessor:
     def find_road_paved(self, image, show=True):
         lower_bound = ImageConstants.PAVED_ROAD_LOWER_BOUND
         upper_bound = ImageConstants.PAVED_ROAD_UPPER_BOUND
-        min_area = 200
+        min_area = 200 * 2.5
 
-        img = cv2.resize(image, (256, 144))
+        img = cv2.resize(image, (640, 360))
 
         # convert to grayscale
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -32,7 +32,7 @@ class ImageProcessor:
 
         # find the center of the two biggest contours
         if len(contours) == 0:
-            mid_point = [280, 150]
+            mid_point = [500, 180]
         elif len(contours) < 2:
             M = cv2.moments(contours[0])
             mid_point = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])]
@@ -63,12 +63,13 @@ class ImageProcessor:
 
     def find_road_dirt(self, image, show=True):
         img = cv2.resize(image, (640, 360))
+        neglecting_rect = np.array([[320-30, 340-20], [320-30, 340+20], [320+30, 340+20], [320+30, 340-20]])
 
         # convert to grayscale
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         # select the colour white
         # threshold the image
-        mask = cv2.inRange(hsv, self.DIRT_ROAD_LOWER_BOUND, self.DIRT_ROAD_UPPER_BOUND)
+        mask = cv2.inRange(hsv, ImageConstants.DIRT_ROAD_LOWER_BOUND, ImageConstants.DIRT_ROAD_UPPER_BOUND)
         # find the contours
         contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         # select the countours that have contour area greater than 500
@@ -76,8 +77,10 @@ class ImageProcessor:
         # remove contours with long axis shorter than 20 pixels
         # find the eccentricity of the contours
         # contours = [c for c in contours if (cv2.minAreaRect(c)[1][0]/cv2.minAreaRect(c)[1][1]) <= 0.8]
-
-        # contours = [c for c in contours if cv2.minAreaRect(c)[1][1] >= 60]
+        # find the center of the minimum area rectangle
+        
+        contours = [c for c in contours
+                     if (abs(cv2.minAreaRect(c)[0][0]-320) >= 30 and abs(cv2.minAreaRect(c)[0][1]-340) >= 30)]
         # sort the contours by area
         contours = sorted(contours, key = cv2.contourArea, reverse = True)[:2]
 
@@ -105,9 +108,10 @@ class ImageProcessor:
                 cv2.circle(img, (int(center[0][0]), int(center[0][1])), 5, (0, 0, 255), -1)
                 cv2.circle(img, (int(center[1][0]), int(center[1][1])), 5, (0, 0, 255), -1)
         if show:
-            cv2.circle(img, (int(mid_point[0]), int(mid_point[1])), 5, (255, 0, 0), -1)
+            cv2.circle(img, (int(mid_point[0]), int(mid_point[1])), 10, (255, 0, 0), -1)
 
             # draw the contours on the image
+            cv2.drawRect(img, neglecting_rect, (0, 255, 0), 3)
             cv2.drawContours(img, contours, -1, (0, 255, 0), 3)
             cv2.imshow("Image window", img)
             cv2.waitKey(1)
