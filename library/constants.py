@@ -69,6 +69,24 @@ class ImageConstants:
     PINK_VAL_UPPER_BOUND = 255
     """int: The upper bound for pink value value in HSV color space."""
     
+    PEDESTRIAN_HUE_LOWER_BOUND = 0
+    """int: The lower bound for pedestrian hue value in HSV color space."""
+    
+    PEDESTRIAN_HUE_UPPER_BOUND = 0
+    """int: The upper bound for pedestrian hue value in HSV color space."""
+    
+    PEDESTRIAN_SAT_LOWER_BOUND = 0
+    """int: The lower bound for pedestrian saturation value in HSV color space."""
+    
+    PEDESTRIAN_SAT_UPPER_BOUND = 125
+    """int: The upper bound for pedestrian saturation value in HSV color space."""
+    
+    PEDESTRIAN_VAL_LOWER_BOUND = 0
+    """int: The lower bound for pedestrian value value in HSV color space."""
+    
+    PEDESTRIAN_VAL_UPPER_BOUND = 255
+    """int: The upper bound for pedestrian value value in HSV color space."""
+    
         
 class ClueConstants:
     """A class that defines constants related to clues."""

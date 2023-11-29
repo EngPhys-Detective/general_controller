@@ -77,6 +77,29 @@ class ClueGuesser:
 
         return clue_img_cv2_cropped
     
+    def crop_clue_topic(self, clue_img):
+        NUM_CROPS = 6
+        
+        clue_img_pil = Image.fromarray(clue_img)
+
+        width, height = clue_img_pil.size
+
+
+        top = height - 370 # 400 - 370 = 30
+        bottom = height - 270 # 400 - 270 = 130
+        cropped_image_width = ClueConstants.CLUE_VALUE_CROP_WIDTH
+
+        clue_img_pil_cropped = []
+
+        for i in range(NUM_CROPS):
+            clue_img_pil_cropped.append(clue_img_pil.crop((250+i*cropped_image_width, top, 295+i*cropped_image_width, bottom)))
+
+        clue_img_cv2_cropped = []
+        for i in range(NUM_CROPS):
+            clue_img_cv2_cropped.append(np.array(clue_img_pil_cropped[i])) # here we are converting to cv2 image
+
+        return clue_img_cv2_cropped
+    
     def get_symbol_from_one_hot_encoder(self,vector):
         assert len(vector) == CNNConstants.CHARACTERS_COUNT
 
@@ -85,17 +108,34 @@ class ClueGuesser:
         return CNNConstants.CHARACTERS[max_value_index]
 
 
-    def guess_image(self,input_banner_img):
+    def guess_image(self, input_banner_img, type=None):
+        """
+        Guesses the characters in the input image based on the specified type.
+
+        Parameters:
+        input_banner_img (numpy.ndarray): The input image containing the clue.
+        type (str, optional): The type of clue. Can be "topic" or "value". Defaults to None.
+
+        Returns:
+        str: The guessed characters. Returns an empty string if the type is not specified.
+
+        """
+        if type == "topic":
+            cropped_input_clue = self.crop_clue_topic(input_banner_img)
+        if type == "value": 
+            cropped_input_clue = self.crop_clue_value(input_banner_img)
+        if type is None:
+            return ""
         
-        cropped_input_clue_values = self.crop_clue_value(input_banner_img)
-        clue_value_guess = ""
+        guessed_char = ""
 
-        for cicv in cropped_input_clue_values:
-            img_aug = np.expand_dims(cicv, axis=0)
+        for cic in cropped_input_clue:
+            img_aug = np.expand_dims(cic, axis=0)
             y_predict = self.conv_model.predict(img_aug)[0]
-            clue_value_guess += self.get_symbol_from_one_hot_encoder(y_predict)
+            guessed_char += self.get_symbol_from_one_hot_encoder(y_predict)
 
-        return clue_value_guess
+        return guessed_char
+
     
 def main(args):
     
