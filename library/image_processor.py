@@ -11,7 +11,7 @@ from constants import *
 
 class ImageProcessor:
           
-    def find_road_paved(self, image, show=True):
+    def find_road_paved(image, show=True):
         lower_bound = ImageConstants.PAVED_ROAD_LOWER_BOUND
         upper_bound = ImageConstants.PAVED_ROAD_UPPER_BOUND
         min_area = 200 * 2.5
@@ -32,7 +32,7 @@ class ImageProcessor:
 
         # find the center of the two biggest contours
         if len(contours) == 0:
-            mid_point = [500, 180]
+            mid_point = [600, 180]
         elif len(contours) < 2:
             M = cv2.moments(contours[0])
             mid_point = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])]
@@ -61,7 +61,7 @@ class ImageProcessor:
 
         return mid_point
 
-    def find_road_dirt(self, image, show=True):
+    def find_road_dirt(image, show=True):
         img = cv2.resize(image, (640, 360))
         neglecting_rect = np.array([[320-30, 340-20], [320-30, 340+20], [320+30, 340+20], [320+30, 340-20]])
 
