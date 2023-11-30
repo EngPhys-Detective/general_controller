@@ -33,14 +33,11 @@ class PavedDriver():
     
     def move(self, error):
         self.twist.angular.z = self.kp_x * error[0]
-        if abs(error[1]) and abs(error[0]) < 20:
-            self.twist.linear.x = 0.85
-        else:
-            self.twist.linear.x = 0.25 + self.kp_y * error[1]
+        self.twist.linear.x = 0.25 + self.kp_y * error[1] - 0.001 * abs(error[0])
         self.velocity_pub.publish(self.twist)
 
     def drive(self, camera_image):
-        error = self.get_error(ImageProcessor.find_road_paved(camera_image))
+        error = self.get_error(self.find_road_paved(camera_image))
         self.move(error)
 
     def stop(self):
@@ -53,7 +50,7 @@ class PavedDriver():
         rospy.sleep(0.25)
         self.stop()
 
-    def find_road_paved(image, show=True):
+    def find_road_paved(self, image, show=True):
         lower_bound = ImageConstants.PAVED_ROAD_LOWER_BOUND
         upper_bound = ImageConstants.PAVED_ROAD_UPPER_BOUND
         min_area = 200 * 2.5
@@ -74,7 +71,7 @@ class PavedDriver():
 
         # find the center of the two biggest contours
         if len(contours) == 0:
-            mid_point = [500, 180]
+            mid_point = [600, 180]
         elif len(contours) < 2:
             M = cv2.moments(contours[0])
             mid_point = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])]
@@ -137,7 +134,7 @@ class DirtDriver():
         self.stop()
 
     def drive(self, camera_image):
-        error = self.get_error(self.find_road_dirt(self, camera_image))
+        error = self.get_error(self.find_road_dirt(camera_image))
         self.move(error)
 
     def find_road_dirt(self, image, show=True):
@@ -190,7 +187,7 @@ class DirtDriver():
             cv2.circle(img, (int(mid_point[0]), int(mid_point[1])), 10, (255, 0, 0), -1)
 
             # draw the contours on the image
-            cv2.drawRect(img, neglecting_rect, (0, 255, 0), 3)
+            # cv2.drawRect(img, neglecting_rect, (0, 255, 0), 3)
             cv2.drawContours(img, contours, -1, (0, 255, 0), 3)
             cv2.imshow("Image window", img)
             cv2.waitKey(1)
