@@ -117,7 +117,7 @@ class ClueFinder:
         Find an approximate polygon in an image.
 
         Parameters:
-        - image: The input image.
+        - image: The input image should be color_mask image.
 
         Returns:
         - The approximate polygon.
