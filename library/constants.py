@@ -112,7 +112,8 @@ class ClueConstants:
     CLUE_VALUE_CROP_WIDTH = 45
     
     CLUE_VALUE_CROP_HEIGHT = 100
-    
+
+    CLUE_TOPICS = ["SIZE", "VICTIM", "CRIME", "TIME", "PLACE", "WEAPON", "BANDIT"]
     
 class CNNConstants:
     
