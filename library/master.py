@@ -70,9 +70,11 @@ class Master:
         banner_image = clue_finder.get_banner_image()
         if (banner_image is not None): 
             self.driver.stop()
-            clue = self.clue_guesser.guess_image(banner_image)
-            print(clue)
-            self.score_keeper.publish_clue(clue)
+            clue_topic = self.clue_guesser.guess_image(banner_image, "topic")
+            print(clue_topic)
+            clue_value = self.clue_guesser.guess_image(banner_image, "value")
+            print(clue_value)
+            # self.score_keeper.publish_clue(clue_value, clue_topic)
             
             # cv2.imwrite("/home/fizzer/enph353_ws/src/my_controller/media/testing_clue_banners/test_img" + str(self.counter) + ".png", banner_image)
             # self.counter += 1
