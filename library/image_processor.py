@@ -139,7 +139,7 @@ class ImageProcessor:
             return False
     
     
-    def colour_mask(self, image, lower_bound, upper_bound):
+    def colour_mask(image, lower_bound, upper_bound):
         """!
         Applies a color filter to the input image.
 
@@ -174,7 +174,7 @@ class ImageProcessor:
         lower_bound = np.array([ImageConstants.BLUE_HUE_LOWER_BOUND, ImageConstants.BLUE_SAT_LOWER_BOUND, ImageConstants.BLUE_VAL_LOWER_BOUND])
         upper_bound = np.array([ImageConstants.BLUE_HUE_UPPER_BOUND, ImageConstants.BLUE_SAT_UPPER_BOUND, ImageConstants.BLUE_VAL_UPPER_BOUND])
         
-        return ImageProcessor.colour_mask(self, image, lower_bound, upper_bound) 
+        return ImageProcessor.colour_mask(image, lower_bound, upper_bound) 
     
     def red_filter(self, image):
         """
@@ -190,7 +190,7 @@ class ImageProcessor:
         lower_bound = np.array([ImageConstants.RED_HUE_LOWER_BOUND, ImageConstants.RED_SAT_LOWER_BOUND, ImageConstants.RED_VAL_LOWER_BOUND])
         upper_bound = np.array([ImageConstants.RED_HUE_UPPER_BOUND, ImageConstants.RED_SAT_UPPER_BOUND, ImageConstants.RED_VAL_UPPER_BOUND])
         
-        return ImageProcessor.colour_mask(self, image, lower_bound, upper_bound)
+        return ImageProcessor.colour_mask(image, lower_bound, upper_bound)
     
     def pink_filter(self, image):
         """
@@ -206,7 +206,7 @@ class ImageProcessor:
         lower_bound = np.array([ImageConstants.PINK_HUE_LOWER_BOUND, ImageConstants.PINK_SAT_LOWER_BOUND, ImageConstants.PINK_VAL_LOWER_BOUND])
         upper_bound = np.array([ImageConstants.PINK_HUE_UPPER_BOUND, ImageConstants.PINK_SAT_UPPER_BOUND, ImageConstants.PINK_VAL_UPPER_BOUND])
         
-        return ImageProcessor.colour_mask(self, image, lower_bound, upper_bound)
+        return ImageProcessor.colour_mask(image, lower_bound, upper_bound)
     
     def do_perspective_transform(self, image, original_coordinates, final_width, final_height):
         """
@@ -283,5 +283,43 @@ class ImageProcessor:
         
         return ImageProcessor.detect_horizontal_line(self, pink_mask)
         
+    
+    def detect_pedestrian(self, image):
+        """
+        Detects the pedestrian in the input image.
+
+        Parameters:
+            image (numpy.ndarray): The input image.
+
+        Returns:
+            numpy.ndarray: The image with the detected pedestrian.
+        """
+        lower_bound = np.array([ImageConstants.PEDESTRIAN_HUE_LOWER_BOUND, ImageConstants.PEDESTRIAN_SAT_LOWER_BOUND, ImageConstants.PEDESTRIAN_VAL_LOWER_BOUND])
+        upper_bound = np.array([ImageConstants.PEDESTRIAN_HUE_UPPER_BOUND, ImageConstants.PEDESTRIAN_SAT_UPPER_BOUND, ImageConstants.PEDESTRIAN_VAL_UPPER_BOUND])
         
+        pedestrian_mask = ImageProcessor.colour_mask(self, image, lower_bound, upper_bound)
+        
+        image_shape = pedestrian_mask.shape
+        w, h = image_shape[1], image_shape[0]
+        
+        count = 0
+        for i in range(int(h/3),h):
+            
+            if (i>int(2*h/3)):
+                break
+            if (pedestrian_mask[i][int(w/2)] == 0):
+                count += 1
+        
+        print(count)
+        
+        if (ImageProcessor.pedestrian_count == 0):
+            ImageProcessor.pedestrian_count = count
+            return False
+        else:
+            if (count > ImageProcessor.pedestrian_count+3):
+                ImageProcessor.pedestrian_count = count
+                return True
+            else:
+                ImageProcessor.pedestrian_count = count
+                return False     
         
