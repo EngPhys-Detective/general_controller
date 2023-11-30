@@ -15,8 +15,9 @@ from constants import ImageConstants, ClueConstants, CNNConstants, ClueLocations
 
 class PavedDriver():
 
-    kp_x = 0.025/2.5
-    kp_y = 0.005/2.5
+    kp_x = 0.0115 # WORKING DO NOT CHANGE HERE
+    kp_yx = 0.000515 # WORKING DO NOT CHANGE HERE
+    kp_yy = 0.00105 # WORKING DO NOT CHANGE HERE
 
     stop_twist = Twist()
     stop_twist.linear.x = 0
@@ -31,24 +32,30 @@ class PavedDriver():
         y_error = 280 - road_mid_point[1]
         return [x_error, y_error]
     
-    def move(self, error):
+    def move(self, error): 
+        # WORKING DO NOT CHANGE HERE
         self.twist.angular.z = self.kp_x * error[0]
-        self.twist.linear.x = 0.25 + self.kp_y * error[1] - 0.001 * abs(error[0])
+        # WORKING DO NOT CHANGE HERE
+        self.twist.linear.x = 0.225 - self.kp_yy * abs(error[1]) - self.kp_yx * abs(error[0]) 
         self.velocity_pub.publish(self.twist)
 
-    def drive(self, camera_image):
+    def drive(self, camera_image): 
         error = self.get_error(self.find_road_paved(camera_image))
         self.move(error)
 
     def stop(self):
         self.velocity_pub.publish(self.stop_twist)
     
-    def forward_step(self):
-        self.twist.linear.x = 0.15
+    def slow_down(self):
+        self.twist.linear.x = 0.035
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
-        rospy.sleep(0.25)
-        self.stop()
+    
+    def speed_up(self): 
+        self.twist.linear.x = 0.325
+        self.twist.angular.z = 0
+        self.velocity_pub.publish(self.twist)
+        rospy.sleep(1)
 
     def find_road_paved(self, image, show=True):
         lower_bound = ImageConstants.PAVED_ROAD_LOWER_BOUND
@@ -71,7 +78,7 @@ class PavedDriver():
 
         # find the center of the two biggest contours
         if len(contours) == 0:
-            mid_point = [600, 180]
+            mid_point = [600, 280]
         elif len(contours) < 2:
             M = cv2.moments(contours[0])
             mid_point = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])]
@@ -102,8 +109,9 @@ class PavedDriver():
 
 class DirtDriver():
 
-    kp_x = 0.0095
-    kp_y = 0.00225
+    kp_x = 0.01
+    ki_x = 0.0001
+    kp_y = 0.0015
 
     stop_twist = Twist()
     stop_twist.linear.x = 0
@@ -120,18 +128,22 @@ class DirtDriver():
     
     def move(self, error):
         self.twist.angular.z = self.kp_x * error[0]
-        self.twist.linear.x = 0.15 
+        self.twist.linear.x = 0.3 - self.kp_y * abs(error[1]) - 0.0005 * abs(error[0])
         self.velocity_pub.publish(self.twist)
 
     def stop(self):
         self.velocity_pub.publish(self.stop_twist)
     
-    def forward_step(self):
-        self.twist.linear.x = 0.15
+    def slow_down(self):
+        self.twist.linear.x = 0.035
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
-        rospy.sleep(0.25)
-        self.stop()
+    
+    def speed_up(self): 
+        self.twist.linear.x = 0.55
+        self.twist.angular.z = 0
+        self.velocity_pub.publish(self.twist)
+        rospy.sleep(1)
 
     def drive(self, camera_image):
         error = self.get_error(self.find_road_dirt(camera_image))
@@ -155,8 +167,8 @@ class DirtDriver():
         # contours = [c for c in contours if (cv2.minAreaRect(c)[1][0]/cv2.minAreaRect(c)[1][1]) <= 0.8]
         # find the center of the minimum area rectangle
         
-        contours = [c for c in contours
-                     if (abs(cv2.minAreaRect(c)[0][0]-320) >= 30 and abs(cv2.minAreaRect(c)[0][1]-340) >= 30)]
+        contours = [c for c in contours if (abs(cv2.minAreaRect(c)[0][0]-320) >= 80 or cv2.minAreaRect(c)[0][1] <= 280)]
+
         # sort the contours by area
         contours = sorted(contours, key = cv2.contourArea, reverse = True)[:2]
 
@@ -187,7 +199,7 @@ class DirtDriver():
             cv2.circle(img, (int(mid_point[0]), int(mid_point[1])), 10, (255, 0, 0), -1)
 
             # draw the contours on the image
-            # cv2.drawRect(img, neglecting_rect, (0, 255, 0), 3)
+            cv2.rectangle(img, (320-80, 280), (320+80,360), (0, 0, 255), 3)
             cv2.drawContours(img, contours, -1, (0, 255, 0), 3)
             cv2.imshow("Image window", img)
             cv2.waitKey(1)

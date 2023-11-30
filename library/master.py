@@ -43,6 +43,7 @@ class Master:
 
         self.onDirt = False
         self.pink_count = 0
+        self.red_count = 0
         
         self.score_keeper = ScoreKeeper()
 
@@ -53,15 +54,16 @@ class Master:
             print(e)
 
         
-        if (ImageProcessor.detect_pink_line(self, camera_image)):
+        if (ImageProcessor.detect_pink_line(camera_image)):
             self.onDirt = True
-            # if (self.pink_count > 0):
-            #     self.dirt_driver.teleport()
+            self.driver = self.dirt_driver
             self.pink_count += 1
             print("pink line detected")
-
-        if (self.onDirt):
-            self.driver = self.dirt_driver
+        elif (ImageProcessor.detect_red_line(camera_image)):
+            print("red line detected")
+            if self.red_count == 0:
+                self.driver.speed_up()
+                self.red_count += 1
 
         self.driver.drive(camera_image)
         
@@ -69,7 +71,7 @@ class Master:
         
         banner_image = clue_finder.get_banner_image()
         if (banner_image is not None): 
-            self.driver.stop()
+            self.driver.slow_down()
             clue_topic = self.clue_guesser.guess_image(banner_image, "topic")
             print(clue_topic)
             clue_value = self.clue_guesser.guess_image(banner_image, "value")

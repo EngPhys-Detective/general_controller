@@ -176,7 +176,7 @@ class ImageProcessor:
         
         return ImageProcessor.colour_mask(image, lower_bound, upper_bound) 
     
-    def red_filter(self, image):
+    def red_filter(image):
         """
         Applies a red color filter to the input image.
 
@@ -192,7 +192,7 @@ class ImageProcessor:
         
         return ImageProcessor.colour_mask(image, lower_bound, upper_bound)
     
-    def pink_filter(self, image):
+    def pink_filter(image):
         """
         Applies a pink color filter to the input image.
 
@@ -233,7 +233,7 @@ class ImageProcessor:
 
         return imgout
     
-    def detect_horizontal_line(self, image):
+    def detect_horizontal_line(image, colour):
         """
         Detects the horizontal line in the input image.
 
@@ -241,19 +241,21 @@ class ImageProcessor:
             image (numpy.ndarray): The input image must be binary (thresholded).
 
         Returns:
-            numpy.ndarray: The image with the detected horizontal line.
+            True if mask contains a horizontal line at bottom of img and False otherwise
         """
-        is_horizontal_line = False
-                
+
+        if colour == 'red':
+            height = 2
+        elif colour == 'pink':
+            height = 15
         image_shape = image.shape
         w, h = image_shape[1], image_shape[0]
         
-        if (image[h-1][int(w/2)] == 255):
-            is_horizontal_line = True
+        is_horizontal_line = all(pixel == 255 for pixel in image[h-height][int(w/2)-10:int(w/2)+10])
                 
         return is_horizontal_line
     
-    def detect_red_line(self, image):
+    def detect_red_line(image):
         """
         Detects the red line in the input image.
 
@@ -264,11 +266,11 @@ class ImageProcessor:
             numpy.ndarray: The image with the detected red line.
         """
         
-        red_mask = ImageProcessor.red_filter(self, image)
+        red_mask = ImageProcessor.red_filter(image)
         
-        return ImageProcessor.detect_horizontal_line(self, red_mask)
+        return ImageProcessor.detect_horizontal_line(red_mask, 'red')
     
-    def detect_pink_line(self, image):
+    def detect_pink_line(image):
         """
         Detects the pink line in the input image.
 
@@ -279,9 +281,9 @@ class ImageProcessor:
             numpy.ndarray: The image with the detected pink line.
         """
         
-        pink_mask = ImageProcessor.pink_filter(self, image)
-        
-        return ImageProcessor.detect_horizontal_line(self, pink_mask)
+        pink_mask = ImageProcessor.pink_filter(image)
+
+        return ImageProcessor.detect_horizontal_line(pink_mask, 'pink')
         
     
     def detect_pedestrian(self, image):
