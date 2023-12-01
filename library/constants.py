@@ -14,6 +14,7 @@ class ImageConstants:
     DIRT_ROAD_LOWER_BOUND = np.array([15, 45, 180], np.uint8)
     """numpy.ndarray: The lower bound for the dirt road color filter."""
     DIRT_ROAD_UPPER_BOUND = np.array([45, 110, 240], np.uint8)
+    """numpy.ndarray: The upper bound for the dirt road color filter."""
     
     BLUE_HUE_LOWER_BOUND = 120
     """int: The lower bound for blue hue value in HSV color space."""
@@ -97,7 +98,7 @@ class ClueConstants:
     CLUE_BANNER_HEIGHT = 400
     """int: The height of the clue banner image."""
     
-    CLUE_BLURRINESS_THRESHOLD = 19
+    CLUE_BLURRINESS_THRESHOLD = 16
     """int: The threshold for determining the blurriness of a clue banner image."""
     
     CLUE_MAX_WHITE_PIXELS = 45000
@@ -114,6 +115,8 @@ class ClueConstants:
     CLUE_VALUE_CROP_HEIGHT = 100
 
     CLUE_TOPICS = ["SIZE", "VICTIM", "CRIME", "TIME", "PLACE", "WEAPON", "BANDIT"]
+    """list str: The list of clue topics."""
+
     
 class CNNConstants:
     
