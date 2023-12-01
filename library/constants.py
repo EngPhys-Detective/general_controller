@@ -11,10 +11,13 @@ class ImageConstants:
     PAVED_ROAD_UPPER_BOUND = np.array([5, 10, 255], np.uint8)
     """numpy.ndarray: The upper bound for the paved road color filter."""
 
-    DIRT_ROAD_LOWER_BOUND = np.array([15, 45, 180], np.uint8)
+    DIRT_ROAD_LOWER_BOUND = np.array([0, 10, 180], np.uint8)
     """numpy.ndarray: The lower bound for the dirt road color filter."""
-    DIRT_ROAD_UPPER_BOUND = np.array([45, 110, 240], np.uint8)
-    
+    DIRT_ROAD_UPPER_BOUND = np.array([45, 100, 255], np.uint8)
+
+    TRUCK_LOWER_BOUND = np.array([10, 80, 155], np.uint8)
+    TRUCK_UPPER_BOUND = np.array([14, 140, 220], np.uint8)
+
     BLUE_HUE_LOWER_BOUND = 120
     """int: The lower bound for blue hue value in HSV color space."""
     
