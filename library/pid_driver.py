@@ -55,21 +55,21 @@ class PavedDriver():
         self.velocity_pub.publish(self.twist)
     
     def speed_up(self): 
-        self.twist.linear.x = 0.855
+        self.twist.linear.x = 0.895
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
-        rospy.sleep(1)
+        rospy.sleep(0.75)
     
     def sharp_turn_left(self):
-        self.twist.linear.x = 0.2
+        self.twist.linear.x = 0.15
         self.twist.angular.z = 0.75
         self.velocity_pub.publish(self.twist)
-        rospy.sleep(0.5)
+        rospy.sleep(0.4)
 
     def find_road_paved(self, image, show=True):
         lower_bound = ImageConstants.PAVED_ROAD_LOWER_BOUND
         upper_bound = ImageConstants.PAVED_ROAD_UPPER_BOUND
-        min_area = 200
+        min_area = 500
 
         img = cv2.resize(image, (640, 360))
 
