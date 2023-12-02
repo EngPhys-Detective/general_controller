@@ -74,7 +74,7 @@ class ClueFinder:
         Returns:
         - The image with blue boundaries removed.
         """
-        color_change_mask = ImageProcessor.blue_filter(self, image)
+        color_change_mask = ImageProcessor.blue_filter(image)
 
         edged = cv2.Canny(color_change_mask, 30, 200)
 
@@ -85,7 +85,7 @@ class ClueFinder:
 
         approx_polygon = self.get_bounding_points(approx_polygon)
 
-        imgout = ImageProcessor.do_perspective_transform(self, image, approx_polygon, ClueConstants.CLUE_BANNER_WIDTH, ClueConstants.CLUE_BANNER_HEIGHT)
+        imgout = ImageProcessor.do_perspective_transform(image, approx_polygon, ClueConstants.CLUE_BANNER_WIDTH, ClueConstants.CLUE_BANNER_HEIGHT)
         return imgout
 
     def find_banner(self, image):
@@ -98,7 +98,7 @@ class ClueFinder:
         Returns:
         - The cropped banner image and the number of white pixels in the image.
         """
-        color_change_mask = ImageProcessor.blue_filter(self, image)
+        color_change_mask = ImageProcessor.blue_filter(image)
         num_white_pixels = cv2.countNonZero(color_change_mask)
 
         approx_polygon = self.find_approximate_polygon(color_change_mask)
@@ -108,7 +108,7 @@ class ClueFinder:
 
         approx_polygon = self.get_bounding_points(approx_polygon)
 
-        imgout = ImageProcessor.do_perspective_transform(self, image, approx_polygon, ClueConstants.CLUE_BANNER_WIDTH, ClueConstants.CLUE_BANNER_HEIGHT)
+        imgout = ImageProcessor.do_perspective_transform(image, approx_polygon, ClueConstants.CLUE_BANNER_WIDTH, ClueConstants.CLUE_BANNER_HEIGHT)
 
         return imgout, num_white_pixels
 
@@ -148,7 +148,7 @@ class ClueFinder:
         cropped_banner, white_pix = self.find_banner(self.camera_feed_image)
 
         if cropped_banner is not None:
-            if ImageProcessor.is_blurry(self, cropped_banner, ClueConstants.CLUE_BLURRINESS_THRESHOLD):
+            if ImageProcessor.is_blurry(cropped_banner, ClueConstants.CLUE_BLURRINESS_THRESHOLD):
                 # print("blurry")
                 pass
             else:
