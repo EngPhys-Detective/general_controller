@@ -141,7 +141,19 @@ class ClueGuesser:
             guessed_string = guessed_string.split(" ")[0]
 
         return guessed_string
-
+    
+    def guess_clue_values(self, banner_image):
+        clue_topic = self.guess_image(banner_image, "topic")
+        print(clue_topic)
+        if clue_topic in ClueConstants.CLUE_TOPICS:
+            clue_value = self.guess_image(banner_image, "value")
+            print(clue_value)
+            return clue_value, clue_topic
+        else:
+            return None, None
+            
+            
+        # cv2.imwrite("/home/fizzer/enph353_ws/src/general_controller/media/test_images/PRPRPRPRPRPR_" + str(Master.counter) + ".png", banner_image)
     
 def main(args):
     

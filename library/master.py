@@ -37,6 +37,7 @@ class Master:
         self.dirt_driver = DirtDriver()
         self.image_processor = ImageProcessor()
         self.clue_guesser = ClueGuesser()
+        self.clue_finder = ClueFinder()
 
         self.driver = self.paved_driver
 
@@ -73,19 +74,12 @@ class Master:
 
         self.driver.drive(camera_image)
         
-        clue_finder = ClueFinder(camera_image)
-        
-        banner_image = clue_finder.get_banner_image()
-        if (banner_image is not None): 
+        banner_image = self.clue_finder.get_banner_image(camera_image)
+        if banner_image is not None:
             self.driver.slow_down()
-            clue_topic = self.clue_guesser.guess_image(banner_image, "topic")
-            print(clue_topic)
-            if clue_topic in ClueConstants.CLUE_TOPICS:
-                clue_value = self.clue_guesser.guess_image(banner_image, "value")
-                print(clue_value)
+            clue_value, clue_topic = self.clue_guesser.guess_clue_values(banner_image)
+            if clue_value is not None:
                 self.score_keeper.publish_clue(clue_value, clue_topic)
-            # cv2.imwrite("/home/fizzer/enph353_ws/src/general_controller/media/test_images/PRPRPRPRPRPR_" + str(Master.counter) + ".png", banner_image)
-            # Master.counter += 1
 
 
 if __name__ == '__main__': 

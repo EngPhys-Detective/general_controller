@@ -14,14 +14,13 @@ class ClueFinder:
     Class for finding clues in an image.
     """
 
-    def __init__(self, camera_feed_image):
+    def __init__(self):
         """
         Initialize the ClueFinder object.
 
         Parameters:
         - camera_feed_image: The input camera feed image.
         """
-        self.camera_feed_image = camera_feed_image
 
     def get_bounding_points(self, approx_polygon):
         """
@@ -138,14 +137,14 @@ class ClueFinder:
 
         return approx_polygon
 
-    def get_banner_image(self):
+    def get_banner_image(self, camera_feed_image):
         """
         Get the banner image.
 
         Returns:
         - The banner image if found and not blurry, None otherwise.
         """
-        cropped_banner, white_pix = self.find_banner(self.camera_feed_image)
+        cropped_banner, white_pix = self.find_banner(camera_feed_image)
 
         if cropped_banner is not None:
             if ImageProcessor.is_blurry(cropped_banner, ClueConstants.CLUE_BLURRINESS_THRESHOLD):
