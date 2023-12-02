@@ -24,10 +24,11 @@ import numpy as np
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import String
+import cv2
  
 
 class Master:
-
+    counter = 0
     def __init__(self):
         self.bridge = CvBridge()
 
@@ -79,12 +80,12 @@ class Master:
             self.driver.slow_down()
             clue_topic = self.clue_guesser.guess_image(banner_image, "topic")
             print(clue_topic)
-            clue_value = self.clue_guesser.guess_image(banner_image, "value")
-            print(clue_value)
-            # self.score_keeper.publish_clue(clue_value, clue_topic)
-            
-            # cv2.imwrite("/home/fizzer/enph353_ws/src/my_controller/media/testing_clue_banners/test_img" + str(self.counter) + ".png", banner_image)
-            # self.counter += 1
+            if clue_topic in ClueConstants.CLUE_TOPICS:
+                clue_value = self.clue_guesser.guess_image(banner_image, "value")
+                print(clue_value)
+                self.score_keeper.publish_clue(clue_value, clue_topic)
+            # cv2.imwrite("/home/fizzer/enph353_ws/src/general_controller/media/test_images/PRPRPRPRPRPR_" + str(Master.counter) + ".png", banner_image)
+            # Master.counter += 1
 
 
 if __name__ == '__main__': 
