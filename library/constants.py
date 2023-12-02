@@ -116,7 +116,7 @@ class ClueConstants:
     
     CLUE_VALUE_CROP_HEIGHT = 100
 
-    CLUE_TOPICS = ["SIZE", "VICTIM", "CRIME", "TIME", "PLACE", "WEAPON", "BANDIT"]
+    CLUE_TOPICS = ["SIZE", "VICTIM", "CRIME", "TIME", "PLACE", "MOTIVE" ,"WEAPON", "BANDIT"]
     """list str: The list of clue topics."""
 
     
