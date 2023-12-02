@@ -247,11 +247,11 @@ class ImageProcessor:
         if colour == 'red':
             height = 2
         elif colour == 'pink':
-            height = 15
+            height = 120 # WORKING for min_area 500 DO NOT CHANGE HERE
         image_shape = image.shape
         w, h = image_shape[1], image_shape[0]
         
-        is_horizontal_line = all(pixel == 255 for pixel in image[h-height][int(w/2)-10:int(w/2)+10])
+        is_horizontal_line = all(pixel == 255 for pixel in image[h-height][int(w/2)-2:int(w/2)+2])
                 
         return is_horizontal_line
     
@@ -286,7 +286,7 @@ class ImageProcessor:
         return ImageProcessor.detect_horizontal_line(pink_mask, 'pink')
         
     
-    def detect_pedestrian(self, image):
+    def detect_pedestrian(image):
         """
         Detects the pedestrian in the input image.
 
@@ -299,7 +299,7 @@ class ImageProcessor:
         lower_bound = np.array([ImageConstants.PEDESTRIAN_HUE_LOWER_BOUND, ImageConstants.PEDESTRIAN_SAT_LOWER_BOUND, ImageConstants.PEDESTRIAN_VAL_LOWER_BOUND])
         upper_bound = np.array([ImageConstants.PEDESTRIAN_HUE_UPPER_BOUND, ImageConstants.PEDESTRIAN_SAT_UPPER_BOUND, ImageConstants.PEDESTRIAN_VAL_UPPER_BOUND])
         
-        pedestrian_mask = ImageProcessor.colour_mask(self, image, lower_bound, upper_bound)
+        pedestrian_mask = ImageProcessor.colour_mask(image, lower_bound, upper_bound)
         
         image_shape = pedestrian_mask.shape
         w, h = image_shape[1], image_shape[0]
@@ -325,3 +325,23 @@ class ImageProcessor:
                 ImageProcessor.pedestrian_count = count
                 return False     
         
+    def detect_truck(image):
+        lower_bound = ImageConstants.TRUCK_LOWER_BOUND
+        upper_bound = ImageConstants.TRUCK_UPPER_BOUND
+
+        truck_mask = ImageProcessor.colour_mask(image, lower_bound, upper_bound)
+
+        # find contours
+        contours, hierarchy = cv2.findContours(truck_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        # select only contours that have contour area greater than 20
+        contours = [c for c in contours if cv2.contourArea(c) > 20]
+
+        # find the number of pixels in the mask that are white
+        num_white_pixels = cv2.countNonZero(truck_mask)
+        cv2.imshow("truck_mask", truck_mask)
+
+        if num_white_pixels > 20 and len(contours) == 1:
+            print("--- truck detected ---")
+            return True
+        else:
+            return False

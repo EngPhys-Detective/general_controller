@@ -57,8 +57,13 @@ class Master:
         if (ImageProcessor.detect_pink_line(camera_image)):
             self.onDirt = True
             self.driver = self.dirt_driver
+            if self.pink_count == 0:
+                self.driver.speed_up()
             self.pink_count += 1
             print("pink line detected")
+        # elif (ImageProcessor.detect_truck(camera_image)):
+        #     self.driver.stop()
+        #     rospy.sleep(3)
         elif (ImageProcessor.detect_red_line(camera_image)):
             print("red line detected")
             if self.red_count == 0:
