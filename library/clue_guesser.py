@@ -104,6 +104,8 @@ class ClueGuesser:
         assert len(vector) == CNNConstants.CHARACTERS_COUNT
 
         max_value_index = np.argmax(vector)
+        
+        print("max_value: ", vector[max_value_index])
 
         return CNNConstants.CHARACTERS[max_value_index]
 
@@ -127,14 +129,18 @@ class ClueGuesser:
         if type is None:
             return ""
         
-        guessed_char = ""
+        guessed_string = ""
 
         for cic in cropped_input_clue:
             img_aug = np.expand_dims(cic, axis=0)
             y_predict = self.conv_model.predict(img_aug)[0]
-            guessed_char += self.get_symbol_from_one_hot_encoder(y_predict)
+            guessed_string += self.get_symbol_from_one_hot_encoder(y_predict)
+        
+            
+        if type == "topic":
+            guessed_string = guessed_string.split(" ")[0]
 
-        return guessed_char
+        return guessed_string
 
     
 def main(args):
@@ -144,8 +150,8 @@ def main(args):
     
     for test_img in sorted(os.listdir("/home/fizzer/enph353_ws/src/my_controller/media/testing_clue_banners")):
         nice_image = cv2.imread("/home/fizzer/enph353_ws/src/my_controller/media/testing_clue_banners/" + test_img)
-        cv2.imshow("nice_image", nice_image)
-        cv2.waitKey(1)
+        # cv2.imshow("nice_image", nice_image)
+        # cv2.waitKey(1)
         print(clue_guesser.guess_image(nice_image))
         
 
