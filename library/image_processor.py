@@ -133,7 +133,7 @@ class ImageProcessor:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         fm = cv2.Laplacian(gray, cv2.CV_64F).var()
 
-        print("blurriesness: ", fm)
+        # print("blurriesness: ", fm)
         if fm < fm_threshold:
             return True
         else:
