@@ -118,7 +118,7 @@ class ImageProcessor:
 
         return mid_point
 
-    def is_blurry(self, image, fm_threshold):
+    def is_blurry(image, fm_threshold):
         """!
         Determines if an image is blurry based on the variance of the Laplacian filter.
 
@@ -133,6 +133,7 @@ class ImageProcessor:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         fm = cv2.Laplacian(gray, cv2.CV_64F).var()
 
+        print("blurriesness: ", fm)
         if fm < fm_threshold:
             return True
         else:
@@ -159,7 +160,7 @@ class ImageProcessor:
         return color_change_mask
     
         
-    def blue_filter(self, image):
+    def blue_filter(image):
         
         """
         Applies a blue color filter to the input image.
@@ -208,7 +209,7 @@ class ImageProcessor:
         
         return ImageProcessor.colour_mask(image, lower_bound, upper_bound)
     
-    def do_perspective_transform(self, image, original_coordinates, final_width, final_height):
+    def do_perspective_transform(image, original_coordinates, final_width, final_height):
         """
         Applies perspective transformation to an image based on the given original coordinates and final width and height.
 
@@ -286,12 +287,12 @@ class ImageProcessor:
         return ImageProcessor.detect_horizontal_line(pink_mask, 'pink')
         
     
-    def detect_pedestrian(self, image):
+    def detect_pedestrian(image):
         """
         Detects the pedestrian in the input image.
 
         Parameters:
-            image (numpy.ndarray): The input image.
+            image (numpy.ndarray): The input image from the camera (with no filter).
 
         Returns:
             numpy.ndarray: The image with the detected pedestrian.
@@ -299,7 +300,7 @@ class ImageProcessor:
         lower_bound = np.array([ImageConstants.PEDESTRIAN_HUE_LOWER_BOUND, ImageConstants.PEDESTRIAN_SAT_LOWER_BOUND, ImageConstants.PEDESTRIAN_VAL_LOWER_BOUND])
         upper_bound = np.array([ImageConstants.PEDESTRIAN_HUE_UPPER_BOUND, ImageConstants.PEDESTRIAN_SAT_UPPER_BOUND, ImageConstants.PEDESTRIAN_VAL_UPPER_BOUND])
         
-        pedestrian_mask = ImageProcessor.colour_mask(self, image, lower_bound, upper_bound)
+        pedestrian_mask = ImageProcessor.colour_mask(image, lower_bound, upper_bound)
         
         image_shape = pedestrian_mask.shape
         w, h = image_shape[1], image_shape[0]
