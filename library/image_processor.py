@@ -10,6 +10,8 @@ from constants import *
 
 
 class ImageProcessor:
+    
+    first_time_trcuk_detected = False
           
     def find_road_paved(image, show=True):
         lower_bound = ImageConstants.PAVED_ROAD_LOWER_BOUND
@@ -326,23 +328,26 @@ class ImageProcessor:
                 ImageProcessor.pedestrian_count = count
                 return False     
         
-    def detect_truck(image):
-        lower_bound = ImageConstants.TRUCK_LOWER_BOUND
-        upper_bound = ImageConstants.TRUCK_UPPER_BOUND
-
-        truck_mask = ImageProcessor.colour_mask(image, lower_bound, upper_bound)
-
-        # find contours
-        contours, hierarchy = cv2.findContours(truck_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        # select only contours that have contour area greater than 20
-        contours = [c for c in contours if cv2.contourArea(c) > 20]
-
-        # find the number of pixels in the mask that are white
-        num_white_pixels = cv2.countNonZero(truck_mask)
-        cv2.imshow("truck_mask", truck_mask)
-
-        if num_white_pixels > 20 and len(contours) == 1:
+    def detect_truck(image, num_white_pixels):
+        
+        
+        if num_white_pixels > ImageConstants.TRUCK_THRESHOLD:
             print("--- truck detected ---")
+            ImageProcessor.first_time_trcuk_detected = True
+            return True
+        else:                
+            return False
+    
+    
+    def is_truck_safe(image):
+        truck_mask = ImageProcessor.colour_mask(image, ImageConstants.TRUCK_LOWER_BOUND, ImageConstants.TRUCK_UPPER_BOUND)
+        num_white_pixels = cv2.countNonZero(truck_mask)
+
+        
+        is_detected = ImageProcessor.detect_truck(image, num_white_pixels)
+        
+        if (ImageProcessor.first_time_trcuk_detected and num_white_pixels < 50):
             return True
         else:
             return False
+        
