@@ -18,6 +18,9 @@ class ImageConstants:
     TRUCK_LOWER_BOUND = np.array([10, 80, 155], np.uint8)
     TRUCK_UPPER_BOUND = np.array([14, 140, 220], np.uint8)
 
+    MOUNTAIN_LOWER_BOUND = np.array([125, 165, 175])
+    MOUNTAIN_UPPER_BOUND = np.array([185, 230, 240])
+
     BLUE_HUE_LOWER_BOUND = 120
     """int: The lower bound for blue hue value in HSV color space."""
     
