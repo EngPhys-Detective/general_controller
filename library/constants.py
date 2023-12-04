@@ -15,8 +15,14 @@ class ImageConstants:
     """numpy.ndarray: The lower bound for the dirt road color filter."""
     DIRT_ROAD_UPPER_BOUND = np.array([45, 100, 255], np.uint8)
 
-    TRUCK_LOWER_BOUND = np.array([10, 80, 155], np.uint8)
-    TRUCK_UPPER_BOUND = np.array([14, 140, 220], np.uint8)
+    TRUCK_LOWER_BOUND = np.array([0, 0, 0], np.uint8)
+    """numpy.ndarray: The lower bound for the truck color filter."""
+    
+    TRUCK_UPPER_BOUND = np.array([180, 255, 5], np.uint8)
+    """numpy.ndarray: The upper bound for the truck color filter."""
+    
+    TRUCK_THRESHOLD = 100
+    """int: The threshold for determining the number of white pixels in binary mask of the truck image."""
 
     MOUNTAIN_LOWER_BOUND = np.array([125, 165, 175])
     MOUNTAIN_UPPER_BOUND = np.array([185, 230, 240])
