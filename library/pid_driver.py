@@ -119,8 +119,8 @@ class PavedDriver():
 
 class DirtDriver():
 
-    kp_x = 0.0135 # WORKING DO NOT CHANGE HERE
-    kp_yx = 0.000275 # WORKING DO NOT CHANGE HERE
+    kp_x = 0.0165 # WORKING DO NOT CHANGE HERE
+    kp_yx = 0.000305 # WORKING DO NOT CHANGE HERE
     kp_yy = 0.00125 # WORKING DO NOT CHANGE HERE
 
     stop_twist = Twist()
@@ -140,7 +140,7 @@ class DirtDriver():
         # # WORKING DO NOT CHANGE HERE
         self.twist.angular.z = self.kp_x * error[0]
         # WORKING DO NOT CHANGE HERE
-        self.twist.linear.x = 0.215 - self.kp_yx * abs(error[0]) 
+        self.twist.linear.x = 0.225 - self.kp_yx * abs(error[0]) 
         self.velocity_pub.publish(self.twist)
 
     def stop(self):
@@ -218,7 +218,7 @@ class DirtDriver():
     
 class MountainDriver():
     
-        kp_x = 0.0095 # WORKING DO NOT CHANGE HERE
+        kp_x = 0.0125 # WORKING DO NOT CHANGE HERE
         kp_yx = 0.000155 # WORKING DO NOT CHANGE HERE
         kp_yy = 0.0011 # WORKING DO NOT CHANGE HERE
     
@@ -260,9 +260,9 @@ class MountainDriver():
         def teleport(self):
             model_state = ModelState()
             model_state.model_name = "R1"
-            model_state.pose.position.x = -4.35
-            model_state.pose.position.y = -2.30
-            model_state.pose.position.z = 0.05
+            model_state.pose.position.x = -4.05
+            model_state.pose.position.y = -2.27
+            model_state.pose.position.z = 0.0525
             model_state.pose.orientation.x = 0.0
             model_state.pose.orientation.y = 0.0
             model_state.pose.orientation.z = 0.0

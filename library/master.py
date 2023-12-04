@@ -47,6 +47,7 @@ class Master:
         self.onDirt = False
         self.pink_count = 0
         self.red_count = 0
+        self.clue_7 = 0
         
         self.score_keeper = ScoreKeeper()
 
@@ -68,31 +69,28 @@ class Master:
                 self.driver = self.mountain_driver
                 self.driver.stop()
                 self.driver.teleport()
+                self.clue_7 = 1
                 self.driver.slow_down()
-                for i in range(5):
-                    saw = self.clue_check(camera_image)
-                    print(saw)
-                    while (saw == False):
-                        saw = self.clue_check(camera_image)
-                        print(saw)
-                self.driver.speed_up()
-                self.driver.stop()
-                print("mountain")
-                rospy.sleep(5)
+            
             self.pink_count += 1
             
         # elif (ImageProcessor.detect_truck(camera_image)):
         #     self.driver.stop()
         #     rospy.sleep(3)
-
+        
         elif (ImageProcessor.detect_red_line(camera_image)):
             print("red line detected")
             if self.red_count == 0:
                 self.driver.speed_up()
             self.red_count += 1
+
+        elif self.score_keeper.publish_count == 7 and self.clue_7 == 1:
+            self.clue_7 += 1
+            self.driver.speed_up()
         
         self.clue_check(camera_image)
-        self.driver.drive(camera_image)
+        if (self.clue_7 != 1):
+            self.driver.drive(camera_image)
 
     def clue_check(self, camera_image):
         banner_image = self.clue_finder.get_banner_image(camera_image)
