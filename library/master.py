@@ -15,7 +15,7 @@ from image_processor import ImageProcessor
 from constants import ImageConstants, ClueConstants, CNNConstants, ClueLocations
 from clue_finder import ClueFinder
 from clue_guesser import ClueGuesser
-from pid_driver import PavedDriver, DirtDriver
+from pid_driver import PavedDriver, DirtDriver, MountainDriver
 from score_keeper import ScoreKeeper
 
 
@@ -35,6 +35,7 @@ class Master:
         rospy.init_node('master')
         self.paved_driver = PavedDriver()
         self.dirt_driver = DirtDriver()
+        self.mountain_driver = MountainDriver()
         self.image_processor = ImageProcessor()
         self.clue_guesser = ClueGuesser()
         self.clue_finder = ClueFinder()
@@ -57,30 +58,52 @@ class Master:
 
         
         if (ImageProcessor.detect_pink_line(camera_image)):
+            print("pink line detected")
             self.onDirt = True
             self.driver = self.dirt_driver
             if self.pink_count == 0:
                 self.driver.speed_up()
+                self.pink_count += 1
+            elif self.score_keeper.publish_count > 4:
+                self.driver = self.mountain_driver
+                self.driver.stop()
+                self.driver.teleport()
+                self.driver.slow_down()
+                for i in range(5):
+                    saw = self.clue_check(camera_image)
+                    print(saw)
+                    while (saw == False):
+                        saw = self.clue_check(camera_image)
+                        print(saw)
+                self.driver.speed_up()
+                self.driver.stop()
+                print("mountain")
+                rospy.sleep(5)
             self.pink_count += 1
-            print("pink line detected")
+            
         # elif (ImageProcessor.detect_truck(camera_image)):
         #     self.driver.stop()
         #     rospy.sleep(3)
+
         elif (ImageProcessor.detect_red_line(camera_image)):
             print("red line detected")
             if self.red_count == 0:
                 self.driver.speed_up()
-                self.red_count += 1
-
-        self.driver.drive(camera_image)
+            self.red_count += 1
         
+        self.clue_check(camera_image)
+        self.driver.drive(camera_image)
+
+    def clue_check(self, camera_image):
         banner_image = self.clue_finder.get_banner_image(camera_image)
         if banner_image is not None:
             self.driver.slow_down()
             clue_value, clue_topic = self.clue_guesser.guess_clue_values(banner_image)
             if clue_value is not None:
                 self.score_keeper.publish_clue(clue_value, clue_topic)
-
+            return True
+        else:
+            return False
 
 if __name__ == '__main__': 
     master = Master()
