@@ -1,23 +1,20 @@
 #!/usr/bin/env python3
 
-from typing import Any
 import rospy
 import cv2
-import time
 import numpy as np
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import Twist
-from matplotlib import pyplot as plt
+from gazebo_msgs.srv import SetModelState
+from gazebo_msgs.msg import ModelState
 
 from image_processor import ImageProcessor
-from constants import ImageConstants, ClueConstants, CNNConstants, ClueLocations
+from constants import ImageConstants
 
 class PavedDriver():
 
-    kp_x = 0.0115 # WORKING DO NOT CHANGE HERE
-    kp_yx = 0.000515 # WORKING DO NOT CHANGE HERE
-    kp_yy = 0.00105 # WORKING DO NOT CHANGE HERE
+    kp_x = 0.0125 # WORKING DO NOT CHANGE HERE
+    kp_yx = 0.000605 # WORKING DO NOT CHANGE HERE
+    kp_yy = 0.00175 # WORKING DO NOT CHANGE HERE
 
     stop_twist = Twist()
     stop_twist.linear.x = 0
@@ -39,7 +36,7 @@ class PavedDriver():
             # WORKING DO NOT CHANGE HERE
             self.twist.angular.z = self.kp_x * error[0]
             # WORKING DO NOT CHANGE HERE
-            self.twist.linear.x = 0.225 - self.kp_yy * abs(error[1]) - self.kp_yx * abs(error[0]) 
+            self.twist.linear.x = 0.275 - self.kp_yy * abs(error[1]) - self.kp_yx * abs(error[0]) 
             self.velocity_pub.publish(self.twist)
 
     def drive(self, camera_image): 
@@ -50,7 +47,7 @@ class PavedDriver():
         self.velocity_pub.publish(self.stop_twist)
     
     def slow_down(self):
-        self.twist.linear.x = 0.035
+        self.twist.linear.x = 0.0375
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
     
@@ -122,8 +119,8 @@ class PavedDriver():
 
 class DirtDriver():
 
-    kp_x = 0.01 # WORKING DO NOT CHANGE HERE
-    kp_yx = 0.000175 # WORKING DO NOT CHANGE HERE
+    kp_x = 0.0125 # WORKING DO NOT CHANGE HERE
+    kp_yx = 0.0002 # WORKING DO NOT CHANGE HERE
     kp_yy = 0.0011 # WORKING DO NOT CHANGE HERE
 
     stop_twist = Twist()
@@ -143,22 +140,22 @@ class DirtDriver():
         # # WORKING DO NOT CHANGE HERE
         self.twist.angular.z = self.kp_x * error[0]
         # WORKING DO NOT CHANGE HERE
-        self.twist.linear.x = 0.15 - self.kp_yx * abs(error[0]) 
+        self.twist.linear.x = 0.175 - self.kp_yx * abs(error[0]) 
         self.velocity_pub.publish(self.twist)
 
     def stop(self):
         self.velocity_pub.publish(self.stop_twist)
     
     def slow_down(self):
-        self.twist.linear.x = 0.035
+        self.twist.linear.x = 0.0375
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
     
     def speed_up(self): # WORKING DO NOT CHANGE
-        self.twist.linear.x = 0.15
+        self.twist.linear.x = 0.3
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
-        rospy.sleep(1)
+        rospy.sleep(0.5)
 
     def drive(self, camera_image):
         error = self.get_error(self.find_road_dirt(camera_image))
@@ -218,3 +215,119 @@ class DirtDriver():
             cv2.waitKey(1)
 
         return mid_point
+    
+class MountainDriver():
+    
+        kp_x = 0.0075 # WORKING DO NOT CHANGE HERE
+        kp_yx = 0.000155 # WORKING DO NOT CHANGE HERE
+        kp_yy = 0.0011 # WORKING DO NOT CHANGE HERE
+    
+        stop_twist = Twist()
+        stop_twist.linear.x = 0
+        stop_twist.angular.z = 0
+    
+        def __init__(self) -> None:
+            self.velocity_pub = rospy.Publisher('R1/cmd_vel', Twist, queue_size=1)
+            self.teleporter = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
+            self.twist = Twist()
+    
+        def get_error(self, road_mid_point):
+            x_error = road_mid_point[0] - 320
+            y_error = 280 - road_mid_point[1]
+            return [x_error, y_error]
+        
+        def move(self, error):
+            # # WORKING DO NOT CHANGE HERE
+            self.twist.angular.z = self.kp_x * error[0]
+            # WORKING DO NOT CHANGE HERE
+            self.twist.linear.x = 0.125 - self.kp_yx * abs(error[0]) 
+            self.velocity_pub.publish(self.twist)
+    
+        def stop(self):
+            self.velocity_pub.publish(self.stop_twist)
+        
+        def slow_down(self):
+            self.twist.linear.x = 0.035
+            self.twist.angular.z = 0
+            self.velocity_pub.publish(self.twist)
+        
+        def speed_up(self): # WORKING DO NOT CHANGE
+            self.twist.linear.x = 0.55
+            self.twist.angular.z = 0
+            self.velocity_pub.publish(self.twist)
+            rospy.sleep(2)
+    
+        def teleport(self):
+            model_state = ModelState()
+            model_state.model_name = "R1"
+            model_state.pose.position.x = -4.15
+            model_state.pose.position.y = -2.30
+            model_state.pose.position.z = 0.05
+            model_state.pose.orientation.x = 0.0
+            model_state.pose.orientation.y = 0.0
+            model_state.pose.orientation.z = 0.0
+            model_state.pose.orientation.w = 0.0
+            self.teleporter(model_state)
+            rospy.sleep(0.5)
+    
+        def drive(self, camera_image):
+            error = self.get_error(self.find_road_mountain(camera_image))
+            self.move(error)
+
+        def find_road_mountain(self, image, show=True):
+            img = cv2.resize(image, (640, 360))
+            min_area = 400
+            
+            mask = cv2.inRange(img, ImageConstants.MOUNTAIN_LOWER_BOUND, ImageConstants.MOUNTAIN_UPPER_BOUND)
+            kernel = np.ones((5,5),np.uint8)
+            mask1 = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+            # find the contours
+            contours, hierarchy = cv2.findContours(mask1, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            # select the countours that have contour area greater than min_area
+            contours = [c for c in contours if cv2.contourArea(c) > min_area]
+
+            contours = [c for c in contours if (cv2.contourArea(c) - cv2.contourArea(cv2.convexHull(c))) <= 50]
+
+            # remove contours with long axis shorter than 20 pixels
+            # find the eccentricity of the contours
+            # contours = [c for c in contours if (cv2.minAreaRect(c)[1][0]/cv2.minAreaRect(c)[1][1]) <= 0.8]
+            # find the center of the minimum area rectangle
+            
+            contours = [c for c in contours if (abs(cv2.minAreaRect(c)[0][0]-320) >= 80 or cv2.minAreaRect(c)[0][1] <= 280)]
+            
+
+            contours = sorted(contours, key = cv2.contourArea, reverse = True)[:2]
+
+            # find the center of the two biggest contours
+            if len(contours) == 0:
+                mid_point = [320, 180]
+            elif len(contours) < 2:
+                M = cv2.moments(contours[0])
+                mid_point = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])]
+            else:
+                center = []
+                for c in contours[0:2]:
+                    M = cv2.moments(c)
+                    cX = int(M["m10"] / M["m00"])
+                    cY = int(M["m01"] / M["m00"])
+                    center.append([cX, cY])
+
+                # find the middle point of the two centers based on the weighted average of the area of the contours
+                mid_point_x = (center[0][0] * cv2.contourArea(contours[0]) + center[1][0] * cv2.contourArea(contours[1])) / (cv2.contourArea(contours[0]) + cv2.contourArea(contours[1]))
+                mid_point_y = (center[0][1] * cv2.contourArea(contours[0]) + center[1][1] * cv2.contourArea(contours[1])) / (cv2.contourArea(contours[0]) + cv2.contourArea(contours[1]))
+                mid_point = [mid_point_x, mid_point_y]
+
+                # plort the center of the two biggest contours and the middle point with cv2
+                if show:
+                    cv2.circle(img, (int(center[0][0]), int(center[0][1])), 5, (0, 0, 255), -1)
+                    cv2.circle(img, (int(center[1][0]), int(center[1][1])), 5, (0, 0, 255), -1)
+            if show:
+                cv2.circle(img, (int(mid_point[0]), int(mid_point[1])), 10, (255, 0, 0), -1)
+
+                # draw the contours on the image
+                cv2.rectangle(img, (320-100, 225), (320+100,360), (0, 0, 255), 3)
+                cv2.drawContours(img, contours, -1, (0, 255, 0), 3)
+                cv2.imshow("Image window", img)
+                cv2.waitKey(1)
+
+            return mid_point
