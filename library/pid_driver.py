@@ -12,9 +12,9 @@ from constants import ImageConstants
 
 class PavedDriver():
 
-    kp_x = 0.0125 # WORKING DO NOT CHANGE HERE
-    kp_yx = 0.000605 # WORKING DO NOT CHANGE HERE
-    kp_yy = 0.00175 # WORKING DO NOT CHANGE HERE
+    kp_x = 0.0145 # WORKING DO NOT CHANGE HERE
+    kp_yx = 0.000675 # WORKING DO NOT CHANGE HERE
+    kp_yy = 0.00195 # WORKING DO NOT CHANGE HERE
 
     stop_twist = Twist()
     stop_twist.linear.x = 0
@@ -36,7 +36,7 @@ class PavedDriver():
             # WORKING DO NOT CHANGE HERE
             self.twist.angular.z = self.kp_x * error[0]
             # WORKING DO NOT CHANGE HERE
-            self.twist.linear.x = 0.275 - self.kp_yy * abs(error[1]) - self.kp_yx * abs(error[0]) 
+            self.twist.linear.x = 0.295 - self.kp_yy * abs(error[1]) - self.kp_yx * abs(error[0]) 
             self.velocity_pub.publish(self.twist)
 
     def drive(self, camera_image): 
@@ -47,18 +47,18 @@ class PavedDriver():
         self.velocity_pub.publish(self.stop_twist)
     
     def slow_down(self):
-        self.twist.linear.x = 0.0375
+        self.twist.linear.x = 0.04
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
     
     def speed_up(self): 
-        self.twist.linear.x = 0.895
+        self.twist.linear.x = 0.9
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
         rospy.sleep(0.75)
     
     def sharp_turn_left(self):
-        self.twist.linear.x = 0.15
+        self.twist.linear.x = 0.125
         self.twist.angular.z = 0.75
         self.velocity_pub.publish(self.twist)
         rospy.sleep(0.4)
@@ -119,9 +119,9 @@ class PavedDriver():
 
 class DirtDriver():
 
-    kp_x = 0.0125 # WORKING DO NOT CHANGE HERE
-    kp_yx = 0.0002 # WORKING DO NOT CHANGE HERE
-    kp_yy = 0.0011 # WORKING DO NOT CHANGE HERE
+    kp_x = 0.0135 # WORKING DO NOT CHANGE HERE
+    kp_yx = 0.000275 # WORKING DO NOT CHANGE HERE
+    kp_yy = 0.00125 # WORKING DO NOT CHANGE HERE
 
     stop_twist = Twist()
     stop_twist.linear.x = 0
@@ -140,14 +140,14 @@ class DirtDriver():
         # # WORKING DO NOT CHANGE HERE
         self.twist.angular.z = self.kp_x * error[0]
         # WORKING DO NOT CHANGE HERE
-        self.twist.linear.x = 0.175 - self.kp_yx * abs(error[0]) 
+        self.twist.linear.x = 0.215 - self.kp_yx * abs(error[0]) 
         self.velocity_pub.publish(self.twist)
 
     def stop(self):
         self.velocity_pub.publish(self.stop_twist)
     
     def slow_down(self):
-        self.twist.linear.x = 0.0375
+        self.twist.linear.x = 0.035
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
     
@@ -218,7 +218,7 @@ class DirtDriver():
     
 class MountainDriver():
     
-        kp_x = 0.0075 # WORKING DO NOT CHANGE HERE
+        kp_x = 0.0095 # WORKING DO NOT CHANGE HERE
         kp_yx = 0.000155 # WORKING DO NOT CHANGE HERE
         kp_yy = 0.0011 # WORKING DO NOT CHANGE HERE
     
@@ -252,15 +252,15 @@ class MountainDriver():
             self.velocity_pub.publish(self.twist)
         
         def speed_up(self): # WORKING DO NOT CHANGE
-            self.twist.linear.x = 0.55
+            self.twist.linear.x = 0.95
             self.twist.angular.z = 0
             self.velocity_pub.publish(self.twist)
-            rospy.sleep(2)
+            rospy.sleep(3)
     
         def teleport(self):
             model_state = ModelState()
             model_state.model_name = "R1"
-            model_state.pose.position.x = -4.15
+            model_state.pose.position.x = -4.35
             model_state.pose.position.y = -2.30
             model_state.pose.position.z = 0.05
             model_state.pose.orientation.x = 0.0
@@ -268,7 +268,7 @@ class MountainDriver():
             model_state.pose.orientation.z = 0.0
             model_state.pose.orientation.w = 0.0
             self.teleporter(model_state)
-            rospy.sleep(0.5)
+            rospy.sleep(0.25)
     
         def drive(self, camera_image):
             error = self.get_error(self.find_road_mountain(camera_image))
