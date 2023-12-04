@@ -4,7 +4,7 @@ import rospy
 from std_msgs.msg import String
 import time
 
-from constants import ImageConstants, ClueConstants, CNNConstants, ClueLocations
+from constants import ClueConstants
 
 class ScoreKeeper:
     
@@ -15,13 +15,13 @@ class ScoreKeeper:
         try:
             self.score_publisher = rospy.Publisher('score_tracker', String , queue_size=1)
             rospy.sleep(2)  # wait for publisher to initialize
-            self.start()
             print("----ScoreKeeper SUCCESS----")
         except Exception as e:
             print(e)
             print("----ScoreKeeper FAILED----")
 
         self.publish_count = 0
+        self.start()
 
     def start(self):
         try:
@@ -45,7 +45,7 @@ class ScoreKeeper:
             if topic in ClueConstants.CLUE_TOPICS:
                 topic_msg = str(ClueConstants.CLUE_TOPICS.index(topic)+1)
                 self.score_publisher.publish("TeamName,password," + topic_msg + "," + value)
-                self.publish_count += 1
+                self.publish_count = int(topic_msg)
                 return True
             else:
                 print("Invalid topic")
