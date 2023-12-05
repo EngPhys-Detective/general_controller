@@ -14,15 +14,8 @@ class ClueFinder:
     Class for finding clues in an image.
     """
 
-    def __init__(self):
-        """
-        Initialize the ClueFinder object.
 
-        Parameters:
-        - camera_feed_image: The input camera feed image.
-        """
-
-    def get_bounding_points(self, approx_polygon):
+    def get_bounding_points(approx_polygon):
         """
         Get the bounding points of an approximate polygon.
 
@@ -63,7 +56,7 @@ class ClueFinder:
         polygon_out = [[top_left[0], top_left[1]]], [[bottom_left[0], bottom_left[1]]], [[bottom_right[0], bottom_right[1]]], [[top_right[0], top_right[1]]]
         return np.float32(polygon_out).reshape(-1, 1, 2)
 
-    def remove_blue_boundaries(self, image):
+    def remove_blue_boundaries(image):
         """
         Remove blue boundaries from an image.
 
@@ -77,17 +70,17 @@ class ClueFinder:
 
         edged = cv2.Canny(color_change_mask, 30, 200)
 
-        approx_polygon = self.find_approximate_polygon(edged)
+        approx_polygon = ClueFinder.find_approximate_polygon(edged)
 
         if approx_polygon is None:
             return None
 
-        approx_polygon = self.get_bounding_points(approx_polygon)
+        approx_polygon = ClueFinder.get_bounding_points(approx_polygon)
 
         imgout = ImageProcessor.do_perspective_transform(image, approx_polygon, ClueConstants.CLUE_BANNER_WIDTH, ClueConstants.CLUE_BANNER_HEIGHT)
         return imgout
 
-    def find_banner(self, image):
+    def find_banner(image):
         """
         Find a banner in an image.
 
@@ -100,18 +93,18 @@ class ClueFinder:
         color_change_mask = ImageProcessor.blue_filter(image)
         num_white_pixels = cv2.countNonZero(color_change_mask)
 
-        approx_polygon = self.find_approximate_polygon(color_change_mask)
+        approx_polygon = ClueFinder.find_approximate_polygon(color_change_mask)
 
         if approx_polygon is None:
             return None, -1
 
-        approx_polygon = self.get_bounding_points(approx_polygon)
+        approx_polygon = ClueFinder.get_bounding_points(approx_polygon)
 
         imgout = ImageProcessor.do_perspective_transform(image, approx_polygon, ClueConstants.CLUE_BANNER_WIDTH, ClueConstants.CLUE_BANNER_HEIGHT)
 
         return imgout, num_white_pixels
 
-    def find_approximate_polygon(self, image):
+    def find_approximate_polygon(image):
         """
         Find an approximate polygon in an image.
 
@@ -137,14 +130,14 @@ class ClueFinder:
 
         return approx_polygon
 
-    def get_banner_image(self, camera_feed_image):
+    def get_banner_image(camera_feed_image):
         """
         Get the banner image.
 
         Returns:
         - The banner image if found and not blurry, None otherwise.
         """
-        cropped_banner, white_pix = self.find_banner(camera_feed_image)
+        cropped_banner, white_pix = ClueFinder.find_banner(camera_feed_image)
 
         if cropped_banner is not None:
             if ImageProcessor.is_blurry(cropped_banner, ClueConstants.CLUE_BLURRINESS_THRESHOLD):
@@ -153,7 +146,7 @@ class ClueFinder:
             else:
                 # print("not blurry")
                 if white_pix < ClueConstants.CLUE_MAX_WHITE_PIXELS:
-                    ready_for_CNN = self.remove_blue_boundaries(cropped_banner)
+                    ready_for_CNN = ClueFinder.remove_blue_boundaries(cropped_banner)
                     if ready_for_CNN is not None:
                         return ready_for_CNN
 
