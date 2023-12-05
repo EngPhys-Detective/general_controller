@@ -11,7 +11,6 @@ from constants import *
 
 class ImageProcessor:
     
-    first_time_trcuk_detected = False
           
     def find_road_paved(image, show=True):
         lower_bound = ImageConstants.PAVED_ROAD_LOWER_BOUND
@@ -328,12 +327,14 @@ class ImageProcessor:
                 ImageProcessor.pedestrian_count = count
                 return False     
         
-    def detect_truck(image, num_white_pixels):
+    def detect_truck(image, num_white_pixels = None):
+        if (num_white_pixels == None):
+            truck_mask = ImageProcessor.colour_mask(image, ImageConstants.TRUCK_LOWER_BOUND, ImageConstants.TRUCK_UPPER_BOUND)
+            num_white_pixels = cv2.countNonZero(truck_mask)
         
-        
+        print("num_white_pixels: ", num_white_pixels)
         if num_white_pixels > ImageConstants.TRUCK_THRESHOLD:
             print("--- truck detected ---")
-            ImageProcessor.first_time_trcuk_detected = True
             return True
         else:                
             return False
@@ -342,7 +343,7 @@ class ImageProcessor:
     def is_truck_safe(image):
         truck_mask = ImageProcessor.colour_mask(image, ImageConstants.TRUCK_LOWER_BOUND, ImageConstants.TRUCK_UPPER_BOUND)
         num_white_pixels = cv2.countNonZero(truck_mask)
-
+        print("num_white_pixels: ", num_white_pixels)
         
         is_detected = ImageProcessor.detect_truck(image, num_white_pixels)
         
