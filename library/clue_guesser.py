@@ -131,24 +131,34 @@ class ClueGuesser:
         
         guessed_string = ""
 
+        min_confidence = 1
         for cic in cropped_input_clue:
             img_aug = np.expand_dims(cic, axis=0)
             y_predict = self.conv_model.predict(img_aug)[0]
             guessed_string += self.get_symbol_from_one_hot_encoder(y_predict)
-        
+            confidence = np.max(y_predict)
+            if confidence < min_confidence:
+                min_confidence = confidence 
+
             
         if type == "topic":
             guessed_string = guessed_string.split(" ")[0]
+            confident = True
+        elif type == "value":
+            confident = min_confidence > ClueConstants.CONFIDENCE_THRESHOLD
 
-        return guessed_string
+        return guessed_string, confident
     
     def guess_clue_values(self, banner_image):
-        clue_topic = self.guess_image(banner_image, "topic")
+        clue_topic, topic_conf = self.guess_image(banner_image, "topic")
         print(clue_topic)
         if clue_topic in ClueConstants.CLUE_TOPICS:
-            clue_value = self.guess_image(banner_image, "value")
-            print(clue_value)
-            return clue_value, clue_topic
+            clue_value, value_conf = self.guess_image(banner_image, "value")
+            print(clue_value, value_conf)
+            if value_conf:
+                return clue_value, clue_topic
+            else:
+                return None, clue_topic
         else:
             return None, None
             

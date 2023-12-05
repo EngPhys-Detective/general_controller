@@ -111,6 +111,9 @@ class ClueConstants:
     
     CLUE_BLURRINESS_THRESHOLD = 16
     """int: The threshold for determining the blurriness of a clue banner image."""
+
+    CONFIDENCE_THRESHOLD = 0.9
+    """float: The minimum threshold for confidence"""
     
     CLUE_MAX_WHITE_PIXELS = 45000
     """int: The maximum number of white pixels allowed in a blue-filtered mask of clue banner image."""

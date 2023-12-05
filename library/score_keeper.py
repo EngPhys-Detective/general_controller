@@ -44,9 +44,11 @@ class ScoreKeeper:
         try:
             if topic in ClueConstants.CLUE_TOPICS:
                 topic_msg = str(ClueConstants.CLUE_TOPICS.index(topic)+1)
-                self.score_publisher.publish("TeamName,password," + topic_msg + "," + value)
-                self.publish_count = int(topic_msg)
-                return True
+                if value is not None:
+                    self.score_publisher.publish("TeamName,password," + topic_msg + "," + value)
+                    self.publish_count = int(topic_msg)
+                    return True
+                return False
             else:
                 print("Invalid topic")
                 return False
