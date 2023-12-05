@@ -57,6 +57,18 @@ class PavedDriver():
         self.velocity_pub.publish(self.twist)
         rospy.sleep(0.75)
     
+    def turn_right_slightly(self):
+        self.twist.linear.x = 0.125
+        self.twist.angular.z = -0.4
+        self.velocity_pub.publish(self.twist)
+        rospy.sleep(0.4)
+        
+    def speed_up_before_pink(self): # WORKING DO NOT CHANGE
+        self.twist.linear.x = 0.3
+        self.twist.angular.z = 0
+        self.velocity_pub.publish(self.twist)
+        rospy.sleep(0.5)
+    
     def sharp_turn_left(self):
         self.twist.linear.x = 0.125
         self.twist.angular.z = 0.75
@@ -129,6 +141,7 @@ class DirtDriver():
 
     def __init__(self) -> None:
         self.velocity_pub = rospy.Publisher('R1/cmd_vel', Twist, queue_size=1)
+        self.teleporter = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
         self.twist = Twist()
 
     def get_error(self, road_mid_point):
@@ -215,6 +228,19 @@ class DirtDriver():
             cv2.waitKey(1)
 
         return mid_point
+    
+    def teleport_to_mountain(self):
+            model_state = ModelState()
+            model_state.model_name = "R1"
+            model_state.pose.position.x = -4.05
+            model_state.pose.position.y = -2.27
+            model_state.pose.position.z = 0.0525
+            model_state.pose.orientation.x = 0.0
+            model_state.pose.orientation.y = 0.0
+            model_state.pose.orientation.z = 0.0
+            model_state.pose.orientation.w = 0.0
+            self.teleporter(model_state)
+            rospy.sleep(0.25)
     
 class MountainDriver():
     
