@@ -17,6 +17,7 @@ from clue_finder import ClueFinder
 from clue_guesser import ClueGuesser
 from pid_driver import PavedDriver, DirtDriver, MountainDriver
 from score_keeper import ScoreKeeper
+from flags import Flags
 
 
 import rospy
@@ -57,9 +58,15 @@ class Master:
         except CvBridgeError as e:
             print(e)
 
-        
+        if (not Flags.passed_truck and ImageProcessor.detect_truck(camera_image)):
+            self.driver.stop()
+            rospy.sleep(2)
+            
+        cv2.imshow("trcuk filter", ImageProcessor.colour_mask(camera_image, ImageConstants.TRUCK_LOWER_BOUND, ImageConstants.TRUCK_UPPER_BOUND))
+        cv2.waitKey(1)
         if (ImageProcessor.detect_pink_line(camera_image)):
             print("pink line detected")
+            Flags.passed_truck = True
             self.onDirt = True
             self.driver = self.dirt_driver
             if self.pink_count == 0:
@@ -88,12 +95,12 @@ class Master:
             self.clue_7 += 1
             self.driver.speed_up()
         
-        self.clue_check(camera_image)
+        # self.clue_check(camera_image)
         if (self.clue_7 != 1):
             self.driver.drive(camera_image)
 
     def clue_check(self, camera_image):
-        banner_image = self.clue_finder.get_banner_image(camera_image)
+        banner_image = ClueFinder.get_banner_image(camera_image)
         if banner_image is not None:
             self.driver.slow_down()
             clue_value, clue_topic = self.clue_guesser.guess_clue_values(banner_image)
