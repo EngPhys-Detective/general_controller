@@ -41,15 +41,14 @@ class Master:
         self.clue_finder = ClueFinder()
 
         self.driver = self.paved_driver
-
-        self.image_sub = rospy.Subscriber('/R1/pi_camera/image_raw', Image, self.poll)
-
         self.onDirt = False
         self.pink_count = 0
         self.red_count = 0
         self.clue_7 = 0
         
         self.score_keeper = ScoreKeeper()
+
+        self.image_sub = rospy.Subscriber('/R1/pi_camera/image_raw', Image, self.poll)
 
     def poll(self, data):
         try:
