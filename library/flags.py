@@ -10,6 +10,8 @@ class Flags:
     
     passed_truck = False
     
+    pedestrian_crossed = False
+    
     reached_roundabout = False
     
     drive = True

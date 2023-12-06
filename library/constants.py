@@ -141,7 +141,14 @@ class CNNConstants:
     
     CHARACTERS_COUNT = len(CHARACTERS)
         
-    
+class States:
+    Normal_driving = "NORMAL_DRIVING"
+    Dirt_driving = "DIRT_DRIVING"
+    Red_line_driving = "RED_LINE_DRIVING"
+    Mountain_driving = "MOUNTAIN_DRIVING"
+    Wait_for_truck = "WAIT_FOR_TRUCK"
+    Wait_for_pedestrian = "WAIT_FOR_PEDESTRIAN"
+       
 
 class ClueLocations:
 

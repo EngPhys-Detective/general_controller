@@ -26,7 +26,8 @@ class ClueGuesser:
     """
     Class for guessing clues in an image.
     """
-
+    guessed_topics_list = []
+    
     def __init__(self):
         """
         Initialize the ClueGuesser object.
@@ -157,11 +158,20 @@ class ClueGuesser:
             clue_value, value_conf = self.guess_image(banner_image, "value")
             print(clue_value, value_conf)
             if value_conf:
+                self.add_topic_to_list(clue_topic)
                 return clue_value, clue_topic
             else:
                 return None, clue_topic
         else:
             return None, None
+        
+    def add_topic_to_list(self, topic):
+        if (topic in self.guessed_topics_list):
+            return False
+        else:
+            self.guessed_topics_list.append(topic)
+            return True
+        
             
             
         # cv2.imwrite("/home/fizzer/enph353_ws/src/general_controller/media/test_images/PRPRPRPRPRPR_" + str(Master.counter) + ".png", banner_image)

@@ -7,10 +7,12 @@ import cv2
 import numpy as np
 
 from constants import *
+from flags import Flags
 
 
 class ImageProcessor:
     
+    pedestrian_count = 0
           
     def find_road_paved(image, show=True):
         lower_bound = ImageConstants.PAVED_ROAD_LOWER_BOUND
@@ -254,7 +256,9 @@ class ImageProcessor:
         w, h = image_shape[1], image_shape[0]
         
         is_horizontal_line = all(pixel == 255 for pixel in image[h-height][int(w/2)-2:int(w/2)+2])
-                
+        
+        if (is_horizontal_line and colour == "pink"):
+           print("pink line detected")
         return is_horizontal_line
     
     def detect_red_line(image):
@@ -269,6 +273,18 @@ class ImageProcessor:
         """
         
         red_mask = ImageProcessor.red_filter(image)
+        
+        cv2.imshow("red mask", red_mask)
+        cv2.waitKey(1)
+        
+        detected = ImageProcessor.detect_horizontal_line(red_mask, 'red')
+        
+        print("red line detected? ", detected)
+        if (detected):
+            Flags.first_time_red_line_detected = True
+        else:
+            if (detected and Flags.first_time_red_line_detected):
+                Flags.second_time_red_line_detected = True
         
         return ImageProcessor.detect_horizontal_line(red_mask, 'red')
     
@@ -285,6 +301,7 @@ class ImageProcessor:
         
         pink_mask = ImageProcessor.pink_filter(image)
 
+        
         return ImageProcessor.detect_horizontal_line(pink_mask, 'pink')
         
     
@@ -303,17 +320,17 @@ class ImageProcessor:
         
         pedestrian_mask = ImageProcessor.colour_mask(image, lower_bound, upper_bound)
         
+        
         image_shape = pedestrian_mask.shape
         w, h = image_shape[1], image_shape[0]
         
-        count = 0
-        for i in range(int(h/3),h):
-            
-            if (i>int(2*h/3)):
-                break
-            if (pedestrian_mask[i][int(w/2)] == 0):
-                count += 1
+        region_of_interest = pedestrian_mask[int(h/3):h, int(w/2)-10:int(w/2)+10]
         
+        count = np.sum(region_of_interest == 0)
+        
+        cv2.rectangle(pedestrian_mask, (int(w/2)-10, int(h/3)), (int(w/2)+10, h), (255, 255, 255), 2)
+        cv2.imshow("pedestrian", pedestrian_mask)
+        cv2.waitKey(1)
         print(count)
         
         if (ImageProcessor.pedestrian_count == 0):
@@ -322,17 +339,19 @@ class ImageProcessor:
         else:
             if (count > ImageProcessor.pedestrian_count+3):
                 ImageProcessor.pedestrian_count = count
+                Flags.pedestrian_crossed = True
                 return True
             else:
                 ImageProcessor.pedestrian_count = count
                 return False     
+    # def pedestrian_crossed(image):
+    #     pedestrian_crossed 
         
     def detect_truck(image, num_white_pixels = None):
         if (num_white_pixels == None):
             truck_mask = ImageProcessor.colour_mask(image, ImageConstants.TRUCK_LOWER_BOUND, ImageConstants.TRUCK_UPPER_BOUND)
             num_white_pixels = cv2.countNonZero(truck_mask)
         
-        print("num_white_pixels: ", num_white_pixels)
         if num_white_pixels > ImageConstants.TRUCK_THRESHOLD:
             print("--- truck detected ---")
             return True
