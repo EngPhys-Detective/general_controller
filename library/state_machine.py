@@ -176,7 +176,7 @@ class StateMachine:
             self.passed_tunnel = True
         elif (np.sum(ImageProcessor.blue_filter(camera_image)==255) > ImageConstants.TOP_CLUE_THRESHOLD):
             self.saw_last_clue += 1
-            if (self.saw_last_clue > 15):
+            if (self.saw_last_clue > 20):
                 self.driver = self.paved_driver
                 self.change_state(States.PEAK_DRV)
 
