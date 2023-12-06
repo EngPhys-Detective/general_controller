@@ -274,17 +274,14 @@ class ImageProcessor:
         
         red_mask = ImageProcessor.red_filter(image)
         
-        cv2.imshow("red mask", red_mask)
-        cv2.waitKey(1)
-        
         detected = ImageProcessor.detect_horizontal_line(red_mask, 'red')
         
-        print("red line detected? ", detected)
-        if (detected):
-            Flags.first_time_red_line_detected = True
-        else:
-            if (detected and Flags.first_time_red_line_detected):
-                Flags.second_time_red_line_detected = True
+        # print("red line detected? ", detected)
+        # if (detected):
+        #     Flags.first_time_red_line_detected = True
+        # else:
+        #     if (detected and Flags.first_time_red_line_detected):
+        #         Flags.second_time_red_line_detected = True
         
         return ImageProcessor.detect_horizontal_line(red_mask, 'red')
     
@@ -353,7 +350,7 @@ class ImageProcessor:
             num_white_pixels = cv2.countNonZero(truck_mask)
         
         if num_white_pixels > ImageConstants.TRUCK_THRESHOLD:
-            print("--- truck detected ---")
+            # print("--- truck detected ---")
             return True
         else:                
             return False
