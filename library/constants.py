@@ -21,7 +21,7 @@ class ImageConstants:
     TRUCK_UPPER_BOUND = np.array([180, 255, 5], np.uint8)
     """numpy.ndarray: The upper bound for the truck color filter."""
     
-    TRUCK_THRESHOLD = 100
+    TRUCK_THRESHOLD = 80
     """int: The threshold for determining the number of white pixels in binary mask of the truck image."""
 
     MOUNTAIN_LOWER_BOUND = np.array([125, 165, 175])
@@ -109,7 +109,7 @@ class ClueConstants:
     CLUE_BANNER_HEIGHT = 400
     """int: The height of the clue banner image."""
     
-    CLUE_BLURRINESS_THRESHOLD = 16
+    CLUE_BLURRINESS_THRESHOLD = 14
     """int: The threshold for determining the blurriness of a clue banner image."""
 
     CONFIDENCE_THRESHOLD = 0.9
@@ -140,7 +140,14 @@ class CNNConstants:
     
     CHARACTERS_COUNT = len(CHARACTERS)
         
-    
+class States:
+    Normal_driving = "NORMAL_DRIVING"
+    Dirt_driving = "DIRT_DRIVING"
+    Red_line_driving = "RED_LINE_DRIVING"
+    Mountain_driving = "MOUNTAIN_DRIVING"
+    Wait_for_truck = "WAIT_FOR_TRUCK"
+    Wait_for_pedestrian = "WAIT_FOR_PEDESTRIAN"
+       
 
 class ClueLocations:
 
