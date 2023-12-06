@@ -21,11 +21,11 @@ class ImageConstants:
     TRUCK_UPPER_BOUND = np.array([180, 255, 5], np.uint8)
     """numpy.ndarray: The upper bound for the truck color filter."""
     
-    TRUCK_THRESHOLD = 100
+    TRUCK_THRESHOLD = 80
     """int: The threshold for determining the number of white pixels in binary mask of the truck image."""
 
-    MOUNTAIN_LOWER_BOUND = np.array([125, 165, 175])
-    MOUNTAIN_UPPER_BOUND = np.array([185, 230, 240])
+    MOUNTAIN_LOWER_BOUND = np.array([120, 160, 170])
+    MOUNTAIN_UPPER_BOUND = np.array([180, 230, 240])
 
     BLUE_HUE_LOWER_BOUND = 120
     """int: The lower bound for blue hue value in HSV color space."""
@@ -98,7 +98,8 @@ class ImageConstants:
     
     PEDESTRIAN_VAL_UPPER_BOUND = 255
     """int: The upper bound for pedestrian value value in HSV color space."""
-    
+
+    TOP_CLUE_THRESHOLD = 1900    
         
 class ClueConstants:
     """A class that defines constants related to clues."""
@@ -109,7 +110,7 @@ class ClueConstants:
     CLUE_BANNER_HEIGHT = 400
     """int: The height of the clue banner image."""
     
-    CLUE_BLURRINESS_THRESHOLD = 16
+    CLUE_BLURRINESS_THRESHOLD = 14
     """int: The threshold for determining the blurriness of a clue banner image."""
 
     CONFIDENCE_THRESHOLD = 0.9
