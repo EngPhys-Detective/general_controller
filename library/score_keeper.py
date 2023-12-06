@@ -15,7 +15,7 @@ class ScoreKeeper:
         try:
             self.score_publisher = rospy.Publisher('score_tracker', String , queue_size=1)
             rospy.sleep(2)  # wait for publisher to initialize
-            print("----ScoreKeeper SUCCESS----")
+            print("-----ScoreKeeper SUCCESS-----")
         except Exception as e:
             print(e)
             print("----ScoreKeeper FAILED----")
@@ -25,7 +25,6 @@ class ScoreKeeper:
 
     def start(self):
         try:
-            print(self.start_msg)
             self.score_publisher.publish(self.start_msg)
         except Exception as e:
             print(e)
