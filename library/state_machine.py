@@ -13,7 +13,7 @@ from tools import Tools
 from flags import Flags
 from constants import *
 
-
+import sys
 import rospy
 import numpy as np
 from sensor_msgs.msg import Image
@@ -29,7 +29,6 @@ class StateMachine:
 
         rospy.init_node('master')
         
-        self.image_sub = rospy.Subscriber('/R1/pi_camera/image_raw', Image, self.poll)
         self.loop_count = 0
         
         self.current_state = initial_state
@@ -37,19 +36,23 @@ class StateMachine:
         self.paved_driver = PavedDriver()
         self.dirt_driver = DirtDriver()
         self.mountain_driver = MountainDriver()
+        self.peak_driver = TopDriver()
         self.image_processor = ImageProcessor()
         self.clue_guesser = ClueGuesser()
         self.clue_finder = ClueFinder()
 
         self.driver = self.paved_driver   
         
-        self.score_keeper = ScoreKeeper()
         self.banner_image = None
         
         self.last_red_detection_time = 0
         self.last_pink_detection_time = 0
         self.time_of_pedestrian_detection = 0
         self.passed_tunnel = False
+        self.saw_last_clue = 0
+        
+        self.score_keeper = ScoreKeeper()
+        self.image_sub = rospy.Subscriber('/R1/pi_camera/image_raw', Image, self.poll)
         
     
     def poll(self,data):
@@ -61,27 +64,30 @@ class StateMachine:
             
         self.banner_image = ClueFinder.get_banner_image(camera_image)
         
-        
-        print(len(ClueFinder.banners_list))
-        
-        if (self.get_current_state() == States.Normal_driving):
+                
+        if (self.get_current_state() == States.NORMAL_DRV):
             self.normal_driving(camera_image)
             
-        elif (self.get_current_state() == States.Red_line_driving):
+        elif (self.get_current_state() == States.RED_LINE_DRV):
             self.red_line_driving(camera_image)
         
-        elif (self.get_current_state() == States.Wait_for_pedestrian):
+        elif (self.get_current_state() == States.PEDESTRIAN_SAFETY):
             self.wait_for_pedestrian(camera_image)
              
-        elif (self.get_current_state() == States.Dirt_driving):
+        elif (self.get_current_state() == States.DIRT_DRV):
             self.dirt_driving(camera_image)
             
-        elif (self.get_current_state() == States.Mountain_driving):
+        elif (self.get_current_state() == States.MOUNTAIN_DRV):
             self.mountain_driving(camera_image)
 
-        elif (self.get_current_state() == States.Wait_for_truck):
+        elif (self.get_current_state() == States.TRUCK_SAFETY):
             self.wait_for_truck(camera_image)
-            
+
+        elif (self.get_current_state() == States.PEAK_DRV):
+            self.peak_driving(camera_image)
+
+        elif (self.get_current_state() == States.FINISH_COURSE):
+            self.finish_course()           
             
     def change_state(self, new_state):
         if new_state == self.current_state:
@@ -97,14 +103,6 @@ class StateMachine:
             if clue_value is not None:
                 self.score_keeper.publish_clue(clue_value, clue_topic)
         
-        # for banner_image in ClueFinder.banners_list:
-        #     self.driver.slow_down()
-        #     clue_value, clue_topic= self.clue_guesser.guess_clue_values(banner_image)
-        #     if clue_value is not None:
-        #         self.score_keeper.publish_clue(clue_value, clue_topic)
-        ClueFinder.banners_list = [] # it is better to change this inside its own class
-        
-              
     def get_current_state(self):
         return self.current_state
     
@@ -114,25 +112,23 @@ class StateMachine:
         
         if (ImageProcessor.detect_red_line(camera_image) and not Flags.pedestrian_crossed):
             self.last_red_detection_time = rospy.get_time()
-            self.change_state(States.Wait_for_pedestrian)
+            self.change_state(States.PEDESTRIAN_SAFETY)
             
         if (ImageProcessor.detect_pink_line(camera_image)):
             # self.driver.turn_right_slightly()            
             self.last_pink_detection_time = rospy.get_time()
             self.driver.speed_up_before_pink()
-            self.change_state(States.Dirt_driving)
+            self.change_state(States.DIRT_DRV)
             
         if (ImageProcessor.detect_truck(camera_image)):
-            self.change_state(States.Wait_for_truck)
-      
-            
+            self.change_state(States.TRUCK_SAFETY)
         
     def wait_for_truck(self, camera_image):
         self.driver.stop()
         rospy.sleep(0.5)
         
         if (not ImageProcessor.detect_truck(camera_image)):
-            self.change_state(States.Normal_driving)
+            self.change_state(States.NORMAL_DRV)
             
     def wait_for_pedestrian(self, camera_image):
         print("entered wait for pedestrian")
@@ -146,9 +142,7 @@ class StateMachine:
                 print("elapsed time: ", elapsed_time)
                 print("entered inner if")
                 self.time_of_pedestrian_detection = rospy.get_time()
-                self.change_state(States.Red_line_driving)
-             
-        
+                self.change_state(States.RED_LINE_DRV)
                         
     def red_line_driving(self, camera_image):
         print("red line detected and pedestrian safe")
@@ -157,7 +151,7 @@ class StateMachine:
         elapsed_time = rospy.get_time() - self.time_of_pedestrian_detection
         print(elapsed_time)
         if (elapsed_time > 0.5):
-            self.change_state(States.Normal_driving)
+            self.change_state(States.NORMAL_DRV)
     
     def dirt_driving(self, camera_image):
         self.driver = self.dirt_driver
@@ -171,26 +165,41 @@ class StateMachine:
             
             self.last_pink_detection_time = rospy.get_time()
             self.driver.teleport_to_mountain()
-            self.change_state(States.Mountain_driving)
+            self.change_state(States.MOUNTAIN_DRV)
         
     def mountain_driving(self, camera_image):
         self.driver = self.mountain_driver
         self.clue_check()
         
-        if (len(self.clue_guesser.guessed_topics_list) == 7 and not self.passed_tunnel):
+        if (self.score_keeper.publish_count == 7 and not self.passed_tunnel):
             self.driver.speed_up()
             self.passed_tunnel = True
-        
-        
-        # if (ImageProcessor.detect_pink_line(camera_image)):
-        #     self.driver.speed_up()  
-        
+        elif (np.sum(ImageProcessor.blue_filter(camera_image)==255) > ImageConstants.TOP_CLUE_THRESHOLD):
+            self.saw_last_clue += 1
+            if (self.saw_last_clue > 15):
+                self.driver = self.paved_driver
+                self.change_state(States.PEAK_DRV)
+
         self.driver.drive(camera_image)
+
+    def peak_driving(self, camera_image):
+        self.driver = self.peak_driver
+        self.driver.drive(camera_image)
+        self.clue_check()
+
+        if (self.score_keeper.publish_count == 8):
+            self.change_state(States.FINISH_COURSE)
+
+    def finish_course(self):
+        print("----END OF COURSE----")
+        self.driver.stop()
+        self.score_keeper.end()
+        sys.exit(0)
         
 
 
 if __name__ == '__main__': 
-    state_machine = StateMachine("NORMAL_DRIVING")
+    state_machine = StateMachine(States.NORMAL_DRV)
 
 
     try:
