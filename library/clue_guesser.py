@@ -39,6 +39,7 @@ class ClueGuesser:
         try:
             self.conv_model = ks.models.load_model(CNN_PATH.CNN_MODEL_PATH)
             print("Model Loaded Successfully")
+            print("-----CNN Model SUCCESS-----")
         except Exception as e:
             print("Error loading model")
             print(str(e))
@@ -134,7 +135,7 @@ class ClueGuesser:
         min_confidence = 1
         for cic in cropped_input_clue:
             img_aug = np.expand_dims(cic, axis=0)
-            y_predict = self.conv_model.predict(img_aug)[0]
+            y_predict = self.conv_model.predict(img_aug, verbose=1)[0]
             guessed_string += self.get_symbol_from_one_hot_encoder(y_predict)
             confidence = np.max(y_predict)
             if confidence < min_confidence:
