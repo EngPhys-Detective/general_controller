@@ -12,8 +12,8 @@ from constants import ImageConstants
 
 class PavedDriver():
 
-    kp_x = 0.0145 # WORKING DO NOT CHANGE HERE
-    kp_yx = 0.000675 # WORKING DO NOT CHANGE HERE
+    kp_x = 0.015 # WORKING DO NOT CHANGE HERE 
+    kp_yx = 0.00075 # WORKING DO NOT CHANGE HERE
     kp_yy = 0.00195 # WORKING DO NOT CHANGE HERE
 
     stop_twist = Twist()
@@ -36,7 +36,7 @@ class PavedDriver():
             # WORKING DO NOT CHANGE HERE
             self.twist.angular.z = self.kp_x * error[0]
             # WORKING DO NOT CHANGE HERE
-            self.twist.linear.x = 0.295 - self.kp_yy * abs(error[1]) - self.kp_yx * abs(error[0]) 
+            self.twist.linear.x = 0.325 - self.kp_yy * abs(error[1]) 
             self.velocity_pub.publish(self.twist)
 
     def drive(self, camera_image): 
@@ -47,7 +47,7 @@ class PavedDriver():
         self.velocity_pub.publish(self.stop_twist)
     
     def slow_down(self):
-        self.twist.linear.x = 0.04
+        self.twist.linear.x = 0.075
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
     
@@ -120,7 +120,7 @@ class PavedDriver():
 class DirtDriver():
 
     kp_x = 0.0135 # WORKING DO NOT CHANGE HERE
-    kp_yx = 0.001 # WORKING DO NOT CHANGE HERE
+    kp_yx = 0.00175 # WORKING DO NOT CHANGE HERE
     kp_yy = 0.00125 # WORKING DO NOT CHANGE HERE
 
     stop_twist = Twist()
@@ -139,19 +139,19 @@ class DirtDriver():
     def move(self, error):
         if abs(error[0]) < 15:
             self.twist.angular.z = (self.kp_x-0.002) * error[0]
-            self.twist.linear.x = 0.5
+            self.twist.linear.x = 0.6
         else:
             # WORKING DO NOT CHANGE HERE
             self.twist.angular.z = self.kp_x * error[0]
             # WORKING DO NOT CHANGE HERE
-            self.twist.linear.x = 0.25 - self.kp_yx * abs(error[0]) 
+            self.twist.linear.x = 0.325 - self.kp_yx * abs(error[0]) 
             self.velocity_pub.publish(self.twist)
 
     def stop(self):
         self.velocity_pub.publish(self.stop_twist)
     
     def slow_down(self):
-        self.twist.linear.x = 0.035
+        self.twist.linear.x = 0.055
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
     
@@ -222,8 +222,8 @@ class DirtDriver():
     
 class MountainDriver():
 
-    kp_x = 0.0075
-    kp_y = 0.000225
+    kp_x = 0.0085
+    kp_y = 0.00075
      
     stop_msg = Twist()
     stop_msg.linear.x = 0
@@ -238,7 +238,7 @@ class MountainDriver():
         self.velocity_pub.publish(self.stop_msg)
 
     def slow_down(self):
-        self.twist.linear.x = 0.035
+        self.twist.linear.x = 0.055
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
     
@@ -268,7 +268,7 @@ class MountainDriver():
     
     def move(self, error):
         self.twist.angular.z = self.kp_x * error[0]
-        self.twist.linear.x = 0.15 - self.kp_y * abs(error[0])
+        self.twist.linear.x = 0.215 - self.kp_y * abs(error[0])
         self.velocity_pub.publish(self.twist)
     
     def drive(self, camera_image): 
@@ -312,7 +312,7 @@ class MountainDriver():
         # find the center of the two biggest contours
         # line_c = []
         if len(contours) == 0:
-            mid_point = [640, 180]
+            mid_point = [320, 180]
         elif len(contours) < 2:
             M = cv2.moments(contours[0])
             mid_point = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])]
@@ -355,6 +355,64 @@ class MountainDriver():
             cv2.imshow('Color Extraction', result)
 
         return mid_point
+    
+class TopDriver:
+
+    kp_x = 0.005
+    kp_y = 0.0025
+    
+    def __init__(self) -> None:
+        self.velocity_pub = rospy.Publisher('R1/cmd_vel', Twist, queue_size=1)
+        self.twist = Twist()
+        
+    def stop(self):
+        self.twist.linear.x = 0
+        self.twist.angular.z = 0
+        self.velocity_pub.publish(self.twist)
+
+    def get_error(self, road_mid_point):
+        x_error = 640 - road_mid_point[0]
+        y_error = 280 - road_mid_point[1]
+        return [x_error, y_error]
+    
+    def move(self, error):
+        self.twist.angular.z = self.kp_x * error[0]
+        self.twist.linear.x = 0.175
+        self.velocity_pub.publish(self.twist)
+    
+    def drive(self, camera_image): 
+        mid_point = self.find_last_banner(camera_image)
+        error = self.get_error(mid_point)
+        self.move(error)
+    
+    def slow_down(self):
+        self.twist.linear.x = 0.055
+        self.twist.angular.z = 0
+        self.velocity_pub.publish(self.twist)
+
+    def find_last_banner(self, img, show=True):
+        blue = ImageProcessor.blue_filter(img)
+        print(np.sum(blue)/255)
+        contours, high = cv2.findContours(blue, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        
+        if len(contours) == 0:
+            mid_point [300, 180]
+        else:
+            mid_point = cv2.minAreaRect(contours[0])[0]
+            # M = cv2.moments(contours[0])
+            # mid_point = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])]
+            cv2.drawContours(img, contours[0], -1, (0, 255, 0), 3)
+            
+        if show:
+            cv2.circle(img, (int(mid_point[0]), int(mid_point[1])), 10, (0, 0, 255), -1)
+            result = cv2.bitwise_and(img, img, mask=blue)
+            cv2.imshow("blue", img)
+            cv2.waitKey(1)
+
+            cv2.imshow("blue", result)
+                
+        return mid_point 
+
 """    
     kp_x = 0.0075
     kp_y = 0.000225
