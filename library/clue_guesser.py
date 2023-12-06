@@ -26,7 +26,6 @@ class ClueGuesser:
     """
     Class for guessing clues in an image.
     """
-    guessed_topics_list = []
     
     def __init__(self):
         """
@@ -158,7 +157,6 @@ class ClueGuesser:
             clue_value, value_conf = self.guess_image(banner_image, "value")
             print(clue_value, value_conf)
             if value_conf:
-                self.add_topic_to_list(clue_topic)
                 return clue_value, clue_topic
             else:
                 return None, clue_topic
