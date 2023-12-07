@@ -251,7 +251,7 @@ class ImageProcessor:
         if colour == 'red':
             height = 2
         elif colour == 'pink':
-            height = 120 # WORKING for min_area 500 DO NOT CHANGE HERE
+            height = 140 # WORKING for min_area 500 DO NOT CHANGE HERE
         image_shape = image.shape
         w, h = image_shape[1], image_shape[0]
         

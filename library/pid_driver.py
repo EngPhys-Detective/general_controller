@@ -47,7 +47,7 @@ class PavedDriver():
         self.velocity_pub.publish(self.stop_twist)
     
     def slow_down(self):
-        self.twist.linear.x = 0.075
+        self.twist.linear.x = 0.05
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
     
@@ -64,7 +64,7 @@ class PavedDriver():
         rospy.sleep(0.4)
         
     def speed_up_before_pink(self): # WORKING DO NOT CHANGE
-        self.twist.linear.x = 0.3
+        self.twist.linear.x = 0.4
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
         rospy.sleep(0.5)
@@ -78,7 +78,7 @@ class PavedDriver():
     def find_road_paved(self, image, show=True):
         lower_bound = ImageConstants.PAVED_ROAD_LOWER_BOUND
         upper_bound = ImageConstants.PAVED_ROAD_UPPER_BOUND
-        min_area = 500
+        min_area = 600
 
         img = cv2.resize(image, (640, 360))
 
@@ -167,6 +167,12 @@ class DirtDriver():
         self.twist.linear.x = 0.055
         self.twist.angular.z = 0
         self.velocity_pub.publish(self.twist)
+    
+    def sharp_turn_left(self):
+        self.twist.linear.x = 0.0
+        self.twist.angular.z = 2
+        self.velocity_pub.publish(self.twist)
+        rospy.sleep(0.75)
     
     def speed_up(self): # WORKING DO NOT CHANGE
         self.twist.linear.x = 0.3
@@ -439,6 +445,135 @@ class TopDriver:
                 
         return mid_point 
 
+class DesertDriver:
+
+    kp_x = 0.005
+    kp_y = 0.0025
+
+    def __init__(self) -> None:
+        self.velocity_pub = rospy.Publisher('R1/cmd_vel', Twist, queue_size=1)
+        self.teleporter = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
+        self.twist = Twist()
+
+    def get_error(self, road_mid_point):
+        x_error = 610 - road_mid_point[0]
+        y_error = 280 - road_mid_point[1]
+        return [x_error, y_error]
+    
+    def move(self, error):
+        self.twist.angular.z = self.kp_x * error[0]
+        self.twist.linear.x = 0.45
+        self.velocity_pub.publish(self.twist)
+    
+    def drive(self, camera_image): 
+        mid_point = self.find_7_banner(camera_image)
+        error = self.get_error(mid_point)
+        self.move(error)
+
+    def speed_up(self):
+        self.twist.linear.x = 0.5
+        self.twist.angular.z = 0
+        self.velocity_pub.publish(self.twist)
+        rospy.sleep(0.5)
+    
+    def slow_down(self):
+        self.twist.linear.x = 0.055
+        self.twist.angular.z = 0
+        self.velocity_pub.publish(self.twist)
+
+    def find_7_banner(self, img, show=True):
+        blue = ImageProcessor.blue_filter(img)
+        print(np.sum(blue)/255)
+        contours, high = cv2.findContours(blue, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        
+        if len(contours) == 0:
+            mid_point [300, 180]
+        else:
+            mid_point = cv2.minAreaRect(contours[0])[0]
+            # M = cv2.moments(contours[0])
+            # mid_point = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])]
+            cv2.drawContours(img, contours[0], -1, (0, 255, 0), 3)
+            
+        if show:
+            cv2.circle(img, (int(mid_point[0]), int(mid_point[1])), 10, (0, 0, 255), -1)
+            result = cv2.bitwise_and(img, img, mask=blue)
+            cv2.imshow("blue", img)
+            cv2.waitKey(1)
+
+            cv2.imshow("blue", result)
+                
+        return mid_point 
+
+class TunnelDriver:
+    kp_x = 0.005
+    kp_y = 0.0025
+
+    def __init__(self) -> None:
+        self.velocity_pub = rospy.Publisher('R1/cmd_vel', Twist, queue_size=1)
+        self.teleporter = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
+        self.twist = Twist()
+
+    def get_error(self, road_mid_point):
+        x_error = 640 - road_mid_point[0]
+        y_error = 280 - road_mid_point[1]
+        return [x_error, y_error]
+    
+    def sharp_turn_left(self):
+        self.twist.linear.x = 0.0
+        self.twist.angular.z = 1.25
+        self.velocity_pub.publish(self.twist)
+        rospy.sleep(0.5)
+
+    def stop(self):
+        self.twist.linear.x = 0
+        self.twist.angular.z = 0
+        self.velocity_pub.publish(self.twist)
+
+    def teleport(self):
+        model_state = ModelState()
+        model_state.model_name = "R1"
+        model_state.pose.position.x = -4.05
+        model_state.pose.position.y = -2.27
+        model_state.pose.position.z = 0.0525
+        model_state.pose.orientation.x = 0.0
+        model_state.pose.orientation.y = 0.0
+        model_state.pose.orientation.z = 0.0
+        model_state.pose.orientation.w = 0.0
+        self.teleporter(model_state)
+        rospy.sleep(0.25)
+    
+    def move(self, error):
+        self.twist.angular.z = self.kp_x * error[0]
+        self.twist.linear.x = 0.45
+        self.velocity_pub.publish(self.twist)
+    
+    def drive(self, camera_image): 
+        mid_point = self.find_pink(camera_image)
+        error = self.get_error(mid_point)
+        self.move(error)
+
+    def find_pink(self, img, show=True):
+
+        pink = ImageProcessor.pink_filter(img)
+        contours, high = cv2.findContours(pink, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        
+        if len(contours) == 0:
+            mid_point [300, 180]
+        else:
+            mid_point = cv2.minAreaRect(contours[0])[0]
+            # M = cv2.moments(contours[0])
+            # mid_point = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])]
+            cv2.drawContours(img, contours[0], -1, (0, 255, 0), 3)
+            
+        if show:
+            cv2.circle(img, (int(mid_point[0]), int(mid_point[1])), 10, (0, 0, 255), -1)
+            # result = cv2.bitwise_and(img, img, mask=pink)
+            cv2.imshow("blue", img)
+            cv2.waitKey(1)
+            # cv2.imshow("blue", result)
+        
+        return mid_point 
+    
 """    
     kp_x = 0.0075
     kp_y = 0.000225

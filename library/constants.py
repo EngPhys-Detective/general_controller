@@ -110,7 +110,7 @@ class ClueConstants:
     CLUE_BANNER_HEIGHT = 400
     """int: The height of the clue banner image."""
     
-    CLUE_BLURRINESS_THRESHOLD = 14
+    CLUE_BLURRINESS_THRESHOLD = 13
     """int: The threshold for determining the blurriness of a clue banner image."""
 
     CONFIDENCE_THRESHOLD = 0.9
@@ -150,6 +150,8 @@ class States:
     TRUCK_SAFETY = 5
     PEDESTRIAN_SAFETY = 6
     FINISH_COURSE = 7
+    DESERT_DRV = 8
+    TUNNEL_DRV = 9
        
 
 class ClueLocations:

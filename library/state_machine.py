@@ -108,7 +108,9 @@ class StateMachine:
     
     def normal_driving(self, camera_image):
         self.driver.drive(camera_image)
-        self.clue_check() 
+        
+        if (self.score_keeper.publish_count != 4):
+            self.clue_check() 
         
         if (ImageProcessor.detect_red_line(camera_image) and not Flags.pedestrian_crossed):
             self.last_red_detection_time = rospy.get_time()
@@ -142,6 +144,7 @@ class StateMachine:
                 print("elapsed time: ", elapsed_time)
                 print("entered inner if")
                 self.time_of_pedestrian_detection = rospy.get_time()
+                rospy.sleep(0.3)
                 self.change_state(States.RED_LINE_DRV)
                         
     def red_line_driving(self, camera_image):
@@ -156,11 +159,13 @@ class StateMachine:
     def dirt_driving(self, camera_image):
         self.driver = self.dirt_driver
         self.driver.drive(camera_image)
-        self.clue_check()
+
+        if (self.score_keeper.publish_count != 6):
+            self.clue_check()
         
         elapsed_time = rospy.get_time() - self.last_pink_detection_time
         
-        if (ImageProcessor.detect_pink_line(camera_image) and elapsed_time > 5):
+        if (ImageProcessor.detect_pink_line(camera_image) and elapsed_time > 15):
             self.driver.stop()
             
             self.last_pink_detection_time = rospy.get_time()
@@ -176,7 +181,7 @@ class StateMachine:
             self.passed_tunnel = True
         elif (np.sum(ImageProcessor.blue_filter(camera_image)==255) > ImageConstants.TOP_CLUE_THRESHOLD):
             self.saw_last_clue += 1
-            if (self.saw_last_clue > 20):
+            if (self.saw_last_clue > 25):
                 self.driver = self.paved_driver
                 self.change_state(States.PEAK_DRV)
 

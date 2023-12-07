@@ -9,8 +9,8 @@ from constants import ClueConstants
 class ScoreKeeper:
     
     def __init__(self) -> None:
-        self.start_msg = "TeamName,password,0,NA"
-        self.end_msg = "TeamName,password,-1,NA"
+        self.start_msg = "Sharpener,Invincible,0,NA"
+        self.end_msg = "Sharpener,Invincible,-1,NA"
         
         try:
             self.score_publisher = rospy.Publisher('score_tracker', String , queue_size=1)
@@ -44,7 +44,7 @@ class ScoreKeeper:
             if topic in ClueConstants.CLUE_TOPICS:
                 topic_msg = str(ClueConstants.CLUE_TOPICS.index(topic)+1)
                 if value is not None:
-                    self.score_publisher.publish("TeamName,password," + topic_msg + "," + value)
+                    self.score_publisher.publish("Sharpener,Invincible," + topic_msg + "," + value)
                     self.publish_count = int(topic_msg)
                     return True
                 return False
